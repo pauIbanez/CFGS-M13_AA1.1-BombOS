@@ -8,7 +8,7 @@
 namespace BombOS {
 
 char Reader::delimeter = ';';
-std::string Reader::header("BDN");
+std::string Reader::header("BOS");
 
 Reader::~Reader() {
   if (stream && stream.is_open()) stream.close();
