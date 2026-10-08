@@ -15,6 +15,7 @@ file(GLOB_RECURSE SOURCES
 )
 
 
+
 add_executable(BombOS ${SOURCES}  ./release/icon.rc)
 
 set_target_properties(BombOS PROPERTIES
@@ -35,6 +36,7 @@ list(REMOVE_DUPLICATES BombOS_INCLUDE_DIRS)
 
 target_include_directories(BombOS PRIVATE
   "${CMAKE_SOURCE_DIR}/src"
+  "${CMAKE_SOURCE_DIR}/include"
   ${BombOS_INCLUDE_DIRS}
 )
 

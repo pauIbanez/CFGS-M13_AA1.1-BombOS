@@ -1,4 +1,12 @@
+#include "reader.h"
 #include <cstdio>
 
 
-int main() { printf("Hello world!"); }
+using namespace BombOS;
+
+int main() {
+
+  Reader *reader = new Reader("./assets/t.map");
+  reader->Read();
+  delete reader;
+}
