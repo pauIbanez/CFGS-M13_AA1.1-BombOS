@@ -22,6 +22,7 @@ public:
   void Read();
 
 private:
+  std::string GetNext();
   bool IsValidFormat();
   void GetVersion();
 };

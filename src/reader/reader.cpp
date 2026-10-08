@@ -23,19 +23,29 @@ void Reader::Read() {
 
 
   if (!IsValidFormat()) {
-    printf("Invalid header!");
+
     return;
   }
   GetVersion();
   printf("done!");
 }
 
-bool Reader::IsValidFormat() {
-  std::string readHeader;
-  std::getline(stream, readHeader, delimeter);
-  return readHeader == header;
+std::string Reader::GetNext() {
+  std::string next;
+  std::getline(stream, next, delimeter);
+  return next;
 }
 
-void Reader::GetVersion() { std::getline(stream, version, delimeter); }
+bool Reader::IsValidFormat() {
+  std::string readHeader = GetNext();
+
+  if (readHeader != header) {
+    printf("Invalid header: %s", readHeader.c_str());
+    return false;
+  }
+  return true;
+}
+
+void Reader::GetVersion() { version = *GetNext(); }
 
 } // namespace BombOS
