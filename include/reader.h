@@ -2,16 +2,23 @@
 
 
 #include <fstream>
+#include <map>
 #include <string>
 namespace BombOS {
+
+enum Format { BOS, PBOS };
+
 class Reader {
 private:
   static char delimeter;
-  static std::string header;
+  static std::map<Format, std::string> headers;
 
 private:
+  Format fileFormat;
   std::string filePath;
   std::ifstream stream;
+
+
   std::string version;
 
 public:

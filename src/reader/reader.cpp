@@ -8,7 +8,7 @@
 namespace BombOS {
 
 char Reader::delimeter = ';';
-std::string Reader::header("BOS");
+std::map<Format, std::string> Reader::headers = {{Format::BOS, "BOS"}, {Format::PBOS, "PBOS"}};
 
 Reader::~Reader() {
   if (stream && stream.is_open()) stream.close();
