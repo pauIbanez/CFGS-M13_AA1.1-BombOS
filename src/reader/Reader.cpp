@@ -10,14 +10,14 @@
 
 namespace BombOS {
 
-char Reader::delimeter = ';';
-std::unordered_map<std::string, Format> Reader::headers = {
+const char Reader::delimeter = ';';
+const std::unordered_map<std::string, Format> Reader::headers = {
     {"BOS", Format::BOS},
     {"PBOS", Format::PBOS},
 };
 
-Version *Reader::PBOSlatest = new Version(0, 0, 1);
-Version *Reader::BOSlatest = new Version(0, 0, 5);
+const Version Reader::PBOSlatest = Version(0, 0, 1);
+const Version Reader::BOSlatest = Version(0, 0, 5);
 
 Reader::~Reader() {
   if (stream && stream.is_open()) stream.close();
@@ -61,17 +61,17 @@ void Reader::ReadVersion() {
 
   switch (format) {
   case Format::BOS:
-    if (version > BOSlatest) {
+    if (*version > BOSlatest) {
       throw std::exception(("Version " + version->ToString() +
-                            " is unsupported! Highest BOS version is " + BOSlatest->ToString())
+                            " is unsupported! Highest BOS version is " + BOSlatest.ToString())
                                .c_str());
     }
     break;
 
   case Format::PBOS:
-    if (version > PBOSlatest) {
+    if (*version > PBOSlatest) {
       throw std::exception(("Version " + version->ToString() +
-                            " is unsupported! Highest PBOS version is " + PBOSlatest->ToString())
+                            " is unsupported! Highest PBOS version is " + PBOSlatest.ToString())
                                .c_str());
     }
     break;
@@ -128,11 +128,15 @@ const bool Reader::TryGetVersion(Version *&version, std::string &versionStr) {
   }
 
   delete version;
-  if (format == Format::BOS) {
-    // BOS is major.patch, so the second number is the patch
+
+  switch (format) {
+  case Format::BOS:
     version = new Version(numbers[0], 0, numbers[1]);
-  } else {
+    break;
+
+  case Format::PBOS:
     version = new Version(numbers[0], numbers[1], numbers[2]);
+    break;
   }
   return true;
 }

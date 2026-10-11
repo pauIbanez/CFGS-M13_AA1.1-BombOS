@@ -14,10 +14,10 @@ enum Format { BOS, PBOS };
 class Reader {
 
 private:
-  static char delimeter;
-  static std::unordered_map<std::string, Format> headers;
-  static Version *PBOSlatest;
-  static Version *BOSlatest;
+  static const char delimeter;
+  static const std::unordered_map<std::string, Format> headers;
+  static const Version PBOSlatest;
+  static const Version BOSlatest;
 
 private:
   std::string filePath;

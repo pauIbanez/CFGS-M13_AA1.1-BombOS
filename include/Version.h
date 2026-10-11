@@ -20,7 +20,7 @@ private:
   short patch;
 
 public:
-  const std::string ToString();
+  const std::string ToString() const;
 
 
 public:
