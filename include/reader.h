@@ -2,8 +2,8 @@
 
 
 #include <fstream>
-#include <map>
 #include <string>
+#include <unordered_map>
 namespace BombOS {
 
 enum Format { BOS, PBOS };
@@ -11,7 +11,7 @@ enum Format { BOS, PBOS };
 class Reader {
 private:
   static char delimeter;
-  static std::map<Format, std::string> headers;
+  static std::unordered_map<std::string, Format> headers;
 
 private:
   Format fileFormat;
@@ -22,15 +22,15 @@ private:
   std::string version;
 
 public:
-  Reader(std::string filePath) : filePath(filePath) {}
+  Reader(const std::string filePath) : filePath(filePath) {}
   ~Reader();
 
 public:
   void Read();
 
 private:
-  std::string GetNext();
-  bool IsValidFormat();
+  const std::string GetNext();
+  const bool IsValidFormat(Format &foundFormat);
   void GetVersion();
 };
 } // namespace BombOS

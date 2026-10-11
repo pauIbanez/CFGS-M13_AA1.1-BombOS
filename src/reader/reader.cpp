@@ -8,7 +8,10 @@
 namespace BombOS {
 
 char Reader::delimeter = ';';
-std::map<Format, std::string> Reader::headers = {{Format::BOS, "BOS"}, {Format::PBOS, "PBOS"}};
+std::unordered_map<std::string, Format> Reader::headers = {
+    {"BOS", Format::BOS},
+    {"PBOS", Format::PBOS},
+};
 
 Reader::~Reader() {
   if (stream && stream.is_open()) stream.close();
@@ -22,7 +25,7 @@ void Reader::Read() {
   }
 
 
-  if (!IsValidFormat()) {
+  if (!IsValidFormat(Format & foundFormat)) {
 
     return;
   }
@@ -30,22 +33,24 @@ void Reader::Read() {
   printf("done!");
 }
 
-std::string Reader::GetNext() {
+const std::string Reader::GetNext() {
   std::string next;
   std::getline(stream, next, delimeter);
   return next;
 }
 
-bool Reader::IsValidFormat() {
+const bool Reader::IsValidFormat(Format &foundFormat) {
   std::string readHeader = GetNext();
 
-  if (readHeader != header) {
+  auto it = headers.find(readHeader);
+  if (it == headers.end()) {
     printf("Invalid header: %s", readHeader.c_str());
     return false;
   }
+  foundFormat = it->second;
   return true;
 }
 
-void Reader::GetVersion() { version = *GetNext(); }
+void Reader::GetVersion() { version = GetNext(); }
 
 } // namespace BombOS
