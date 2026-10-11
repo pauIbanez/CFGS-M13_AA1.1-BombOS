@@ -1,25 +1,30 @@
 #pragma once
 
 
+#include "Version.h"
 #include <fstream>
 #include <string>
 #include <unordered_map>
+
+
 namespace BombOS {
 
 enum Format { BOS, PBOS };
 
 class Reader {
+
 private:
   static char delimeter;
   static std::unordered_map<std::string, Format> headers;
+  static Version *PBOSlatest;
+  static Version *BOSlatest;
 
 private:
-  Format fileFormat;
   std::string filePath;
   std::ifstream stream;
 
-
-  std::string version;
+  Format format;
+  Version *version = nullptr;
 
 public:
   Reader(const std::string filePath) : filePath(filePath) {}
@@ -29,8 +34,14 @@ public:
   void Read();
 
 private:
-  const std::string GetNext();
-  const bool IsValidFormat(Format &foundFormat);
-  void GetVersion();
+  void ReadFormat();
+  void ReadVersion();
+
+private:
+  const bool TryGetFormat(Format &format, std::string &header);
+  const bool TryGetVersion(Version *&version, std::string &versionStr);
+
+
+  const std::string GetNext(const char &del = delimeter);
 };
 } // namespace BombOS
