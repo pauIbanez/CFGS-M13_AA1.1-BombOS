@@ -19,9 +19,7 @@ const std::unordered_map<std::string, Format> Reader::formatHeaders = {
 const Version Reader::PBOSlatest = Version(0, 0, 1);
 const Version Reader::BOSlatest = Version(0, 0, 5);
 
-const std::string Reader::headers[] = {
-    "TITLE", "TEXTURES", "SIZE", "FLOOR", "MAP", "COLLISIONS", "OBJECTS",
-};
+
 
 Reader::~Reader() {
   if (stream && stream.is_open()) stream.close();
@@ -38,6 +36,7 @@ void Reader::Read() {
   ReadVersion();
   ExpectLineEnd("Version");
   ReadTitle();
+  ReadTextures();
 
   printf("done!\n");
 }
@@ -54,7 +53,6 @@ void Reader::ReadFormat() {
 }
 
 void Reader::ReadVersion() {
-
   std::string versionStr;
 
   if (!TryGetVersion(version, versionStr)) {
@@ -86,26 +84,15 @@ void Reader::ReadVersion() {
 void Reader::ReadTitle() {
   std::string title;
 
-  switch (format) {
-  case Format::BOS:
-    {
-      std::string titleHeader = GetNext();
-      if (titleHeader != headers[0])
-        throw std::exception(
-            ("Unexpected title header. Got:" + titleHeader + " Expected: " + headers[0]).c_str());
-      title = GetNext();
-    }
-    break;
+  ExpectHeader("TITLE");
+  title = GetNext();
 
-  case Format::PBOS:
-    title = GetNext();
-    break;
-  }
   if (title == "") throw std::exception("Can't have empty title");
 
   printf("TITLE: %s\n", title.c_str());
 }
 
+void Reader::ReadTextures() {}
 
 const bool Reader::TryGetFormat(Format &format, std::string &header) {
   header = GetNext();
@@ -176,6 +163,12 @@ const std::string Reader::GetNext(const char &del) {
   if (start == std::string::npos) return "";
   size_t end = next.find_last_not_of(ws);
   return next.substr(start, end - start + 1);
+}
+
+void Reader::ExpectHeader(const std::string &header) {
+  std::string next = GetNext();
+  if (next != header)
+    throw std::exception(("Unexpected header. Got:" + next + " Expected: " + header).c_str());
 }
 
 

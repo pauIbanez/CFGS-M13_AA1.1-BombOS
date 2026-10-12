@@ -20,7 +20,6 @@ private:
   static const std::unordered_map<std::string, Format> formatHeaders;
   static const Version PBOSlatest;
   static const Version BOSlatest;
-  static const std::string headers[];
 
 private:
   std::string filePath;
@@ -50,6 +49,7 @@ private:
   const bool TryGetTextures(std::vector<std::string> &textures);
 
   const std::string GetNext(const char &del = delimeter);
+  void ExpectHeader(const std::string &header);
   const bool IsLineEnd(const std::string &read) const;
   void ExpectLineEnd(const std::string &after);
 };
