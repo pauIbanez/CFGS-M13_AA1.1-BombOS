@@ -1,12 +1,15 @@
 
-#include "reader.h"
+#include "Reader.h"
+#include "MapData.h"
 #include "Version.h"
 #include <cstddef>
 #include <cstdio>
 #include <exception>
 #include <fstream>
 #include <iostream>
+#include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace BombOS {
@@ -27,19 +30,21 @@ Reader::~Reader() {
   delete version;
 }
 
-void Reader::Read() {
+const std::unique_ptr<Map::MapData> Reader::Read() {
   stream = std::ifstream(filePath);
   if (!stream) {
     throw std::exception(("Could not open file: " + filePath).c_str());
   }
 
+
   ReadFormat();
   ReadVersion();
-  ReadTitle();
-  ReadTextures();
-  ReadSize();
 
-  printf("done!\n");
+  const std::string title = ReadTitle();
+  const TextureMap textures = ReadTextures();
+  const Map::MapSize mapSize = ReadSize();
+
+  return std::make_unique<Map::MapData>(title, textures, mapSize);
 }
 
 
@@ -83,41 +88,47 @@ void Reader::ReadVersion() {
   printf("Reading version %s\n", version->ToString().c_str());
 }
 
-void Reader::ReadTitle() {
+const std::string Reader::ReadTitle() {
 
   ExpectHeader("TITLE");
 
-  title = GetNext();
+  std::string title = GetNext();
   if (title == "") throw std::exception("Can't have empty title");
 
   ExpectLineEnd("Title");
 
   printf("TITLE: %s\n", title.c_str());
+  return title;
 }
 
-void Reader::ReadTextures() {
+const TextureMap Reader::ReadTextures() {
   ExpectHeader("TEXTURES");
 
+  TextureMap textures;
   switch (format) {
   case Format::BOS:
-    ReadTexturesBOS();
+    ReadTexturesBOS(textures);
     break;
 
   case Format::PBOS:
-    ReadTexturesPBOS();
+    ReadTexturesPBOS(textures);
     break;
   }
 
   for (auto [k, v] : textures) {
     printf("%s: %s\n", k.c_str(), v.c_str());
   }
+
+  return textures;
 }
 
-void Reader::ReadSize() {
+const Map::MapSize Reader::ReadSize() {
   ExpectHeader("SIZE");
   std::string heightStr = GetNext();
   std::string widthStr = GetNext();
 
+  short height;
+  short width;
   try {
     height = std::stoi(heightStr);
     width = std::stoi(widthStr);
@@ -131,11 +142,13 @@ void Reader::ReadSize() {
 
   ExpectLineEnd("Size");
 
+
   printf("SIZE: %i %i\n", height, width);
+  return Map::MapSize(height, width);
 }
 
 
-void Reader::ReadTexturesBOS() {
+void Reader::ReadTexturesBOS(TextureMap &textures) {
   std::string sizeStr = GetNext();
   int size;
   try {
@@ -158,7 +171,7 @@ void Reader::ReadTexturesBOS() {
   }
 }
 
-void Reader::ReadTexturesPBOS() {
+void Reader::ReadTexturesPBOS(TextureMap &textures) {
 
   std::string texture = GetNext();
   short counter = 0;

@@ -1,9 +1,10 @@
 #pragma once
 
-
+#include "MapData.h"
+#include "MapSize.h"
+#include "Types.h"
 #include "Version.h"
 #include <fstream>
-#include <map>
 #include <string>
 #include <unordered_map>
 
@@ -11,7 +12,6 @@
 
 namespace BombOS {
 
-enum Format { BOS, PBOS };
 
 class Reader {
 
@@ -27,27 +27,27 @@ private:
 
   Format format;
   Version *version = nullptr;
-  std::string title = "";
-  std::map<std::string, std::string> textures;
-  int height, width = 0;
+
+  std::unique_ptr<Map::MapData> mapData;
 
 public:
   Reader(const std::string filePath) : filePath(filePath) {}
   ~Reader();
 
 public:
-  void Read();
+  const std::unique_ptr<Map::MapData> Read();
 
 private:
   void ReadFormat();
   void ReadVersion();
-  void ReadTitle();
-  void ReadTextures();
-  void ReadSize();
+
+  const std::string ReadTitle();
+  const TextureMap ReadTextures();
+  const Map::MapSize ReadSize();
 
 private:
-  void ReadTexturesBOS();
-  void ReadTexturesPBOS();
+  void ReadTexturesBOS(TextureMap &textures);
+  void ReadTexturesPBOS(TextureMap &textures);
 
 private:
   const bool TryParseFormat(std::string &formatStr, Format &format);
