@@ -57,5 +57,6 @@ private:
   void ExpectHeader(const std::string &header);
   const bool IsLineEnd(const std::string &read) const;
   void ExpectLineEnd(const std::string &after);
+  void ExpectEnd();
 };
 } // namespace BombOS

@@ -37,6 +37,7 @@ void Reader::Read() {
   ReadVersion();
   ReadTitle();
   ReadTextures();
+  ReadSize();
 
   printf("done!\n");
 }
@@ -110,6 +111,27 @@ void Reader::ReadTextures() {
   for (auto [k, v] : textures) {
     printf("%s: %s\n", k.c_str(), v.c_str());
   }
+}
+
+void Reader::ReadSize() {
+  ExpectHeader("SIZE");
+  std::string heightStr = GetNext();
+  std::string widthStr = GetNext();
+
+  try {
+    height = std::stoi(heightStr);
+    width = std::stoi(widthStr);
+  } catch (const std::exception &) {
+    throw std::exception("Invalid size");
+  }
+
+  if (height <= 0 || width <= 0) {
+    throw std::exception("Size must be higher than 0!");
+  }
+
+  ExpectLineEnd("Size");
+
+  printf("SIZE: %i %i\n", height, width);
 }
 
 
@@ -209,6 +231,7 @@ const bool Reader::TryParseVersion(std::string &versionStr, Version *&version) {
 const std::string Reader::GetNext(const char &del) {
   std::string next;
   std::getline(stream, next, del);
+  if (stream.eof()) throw std::exception("Unexpected end of file");
 
   const char *ws = "\r\n";
   size_t start = next.find_first_not_of(ws);
@@ -230,6 +253,12 @@ void Reader::ExpectLineEnd(const std::string &after) {
   std::string next = GetNext();
   if (!IsLineEnd(next))
     throw std::exception(("Expected line end after " + after + ", got: " + next).c_str());
+}
+
+void Reader::ExpectEnd() {
+  stream >> std::ws;
+  if (stream.peek() != std::char_traits<char>::eof())
+    throw std::exception("Expected end of file, found more data");
 }
 
 } // namespace BombOS
