@@ -6,7 +6,7 @@
 #include <map>
 #include <string>
 #include <unordered_map>
-#include <vector>
+
 
 
 namespace BombOS {
@@ -44,9 +44,12 @@ private:
   void ReadTextures();
 
 private:
-  const bool TryGetFormat(Format &format, std::string &header);
-  const bool TryGetVersion(Version *&version, std::string &versionStr);
-  const bool TryGetTextures(std::vector<std::string> &textures);
+  void ReadTexturesBOS();
+  void ReadTexturesPBOS();
+
+private:
+  const bool TryParseFormat(std::string &formatStr, Format &format);
+  const bool TryParseVersion(std::string &versionStr, Version *&version);
 
   const std::string GetNext(const char &del = delimeter);
   void ExpectHeader(const std::string &header);

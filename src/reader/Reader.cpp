@@ -1,6 +1,7 @@
 
 #include "reader.h"
 #include "Version.h"
+#include <cstddef>
 #include <cstdio>
 #include <exception>
 #include <fstream>
@@ -36,6 +37,7 @@ void Reader::Read() {
   ReadVersion();
   ExpectLineEnd("Version");
   ReadTitle();
+  ExpectLineEnd("Title");
   ReadTextures();
 
   printf("done!\n");
@@ -43,19 +45,19 @@ void Reader::Read() {
 
 
 void Reader::ReadFormat() {
-  std::string foundHeader;
+  std::string formatStr = GetNext();
 
-  if (!TryGetFormat(format, foundHeader)) {
-    throw std::exception(("Invalid header found " + foundHeader).c_str());
+  if (!TryParseFormat(formatStr, format)) {
+    throw std::exception(("Invalid format found " + formatStr).c_str());
   }
 
-  printf("Reading format %s\n", foundHeader.c_str());
+  printf("Reading format %s\n", formatStr.c_str());
 }
 
 void Reader::ReadVersion() {
-  std::string versionStr;
+  std::string versionStr = GetNext();
 
-  if (!TryGetVersion(version, versionStr)) {
+  if (!TryParseVersion(versionStr, version)) {
     throw std::exception(("Invalid version found " + versionStr).c_str());
   }
 
@@ -82,7 +84,6 @@ void Reader::ReadVersion() {
 }
 
 void Reader::ReadTitle() {
-  std::string title;
 
   ExpectHeader("TITLE");
   title = GetNext();
@@ -92,12 +93,62 @@ void Reader::ReadTitle() {
   printf("TITLE: %s\n", title.c_str());
 }
 
-void Reader::ReadTextures() {}
+void Reader::ReadTextures() {
+  ExpectHeader("TEXTURES");
 
-const bool Reader::TryGetFormat(Format &format, std::string &header) {
-  header = GetNext();
+  switch (format) {
+  case Format::BOS:
+    ReadTexturesBOS();
+    break;
 
-  auto it = formatHeaders.find(header);
+  case Format::PBOS:
+    ReadTexturesPBOS();
+    break;
+  }
+
+  for (auto [k, v] : textures) {
+    printf("%s: %s\n", k.c_str(), v.c_str());
+  }
+}
+
+
+void Reader::ReadTexturesBOS() {
+  std::string sizeStr = GetNext();
+  int size;
+  try {
+    size = std::stoi(sizeStr);
+  } catch (const std::exception &) {
+    throw std::exception("Invalid texture size");
+  }
+
+  if (size < 0) throw std::exception("Invalid texture size");
+
+  printf("Reading %i textures\n", size);
+
+  ExpectLineEnd("Texture size");
+  for (size_t i = 0; i < size; i++) {
+    std::string ident = GetNext();
+    std::string textureName = GetNext();
+    ExpectLineEnd(textureName);
+    if (!textures.emplace(ident, textureName).second)
+      throw std::exception(("Duplicate texture identifier: " + ident).c_str());
+  }
+}
+
+void Reader::ReadTexturesPBOS() {
+
+  std::string texture = GetNext();
+  short counter = 0;
+  while (!IsLineEnd(texture)) {
+    textures.insert({std::to_string(counter), texture});
+    counter++;
+    texture = GetNext();
+  }
+}
+
+const bool Reader::TryParseFormat(std::string &formatStr, Format &format) {
+
+  auto it = formatHeaders.find(formatStr);
   if (it == formatHeaders.end()) {
     return false;
   }
@@ -105,9 +156,7 @@ const bool Reader::TryGetFormat(Format &format, std::string &header) {
   return true;
 }
 
-const bool Reader::TryGetVersion(Version *&version, std::string &versionStr) {
-  versionStr = GetNext();
-
+const bool Reader::TryParseVersion(std::string &versionStr, Version *&version) {
   std::vector<std::string> parts;
   std::string part = "";
   const char splitter = '.';
