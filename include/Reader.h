@@ -29,6 +29,7 @@ private:
   Version *version = nullptr;
   std::string title = "";
   std::map<std::string, std::string> textures;
+  int height, width = 0;
 
 public:
   Reader(const std::string filePath) : filePath(filePath) {}
@@ -42,6 +43,7 @@ private:
   void ReadVersion();
   void ReadTitle();
   void ReadTextures();
+  void ReadSize();
 
 private:
   void ReadTexturesBOS();

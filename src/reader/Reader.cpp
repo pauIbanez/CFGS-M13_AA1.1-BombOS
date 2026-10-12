@@ -35,9 +35,7 @@ void Reader::Read() {
 
   ReadFormat();
   ReadVersion();
-  ExpectLineEnd("Version");
   ReadTitle();
-  ExpectLineEnd("Title");
   ReadTextures();
 
   printf("done!\n");
@@ -79,6 +77,7 @@ void Reader::ReadVersion() {
     }
     break;
   }
+  ExpectLineEnd("Version");
 
   printf("Reading version %s\n", version->ToString().c_str());
 }
@@ -86,9 +85,11 @@ void Reader::ReadVersion() {
 void Reader::ReadTitle() {
 
   ExpectHeader("TITLE");
-  title = GetNext();
 
+  title = GetNext();
   if (title == "") throw std::exception("Can't have empty title");
+
+  ExpectLineEnd("Title");
 
   printf("TITLE: %s\n", title.c_str());
 }
@@ -145,6 +146,8 @@ void Reader::ReadTexturesPBOS() {
     texture = GetNext();
   }
 }
+
+
 
 const bool Reader::TryParseFormat(std::string &formatStr, Format &format) {
 
