@@ -6,12 +6,23 @@
 using namespace BombOS;
 
 int main() {
-  Reader *reader = new Reader("./assets/b.map");
+  Reader *readerBOS = new Reader("./assets/level1.bos");
+  Reader *readerPBOS = new Reader("./assets/level1_p.bos");
+
+  printf("Reading BOS:\n");
   try {
-    reader->Read();
+    readerBOS->Read();
   } catch (std::exception e) {
-    printf("Error: %s\n", e.what());
+    printf("BOSError: %s\n", e.what());
   }
 
-  delete reader;
+  printf("\n\nReading PBOS:\n");
+  try {
+    readerPBOS->Read();
+  } catch (std::exception e) {
+    printf("PBOSError: %s\n", e.what());
+  }
+
+  delete readerBOS;
+  delete readerPBOS;
 }

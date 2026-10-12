@@ -11,13 +11,17 @@
 namespace BombOS {
 
 const char Reader::delimeter = ';';
-const std::unordered_map<std::string, Format> Reader::headers = {
+const std::unordered_map<std::string, Format> Reader::formatHeaders = {
     {"BOS", Format::BOS},
     {"PBOS", Format::PBOS},
 };
 
 const Version Reader::PBOSlatest = Version(0, 0, 1);
 const Version Reader::BOSlatest = Version(0, 0, 5);
+
+const std::string Reader::headers[] = {
+    "TITLE", "TEXTURES", "SIZE", "FLOOR", "MAP", "COLLISIONS", "OBJECTS",
+};
 
 Reader::~Reader() {
   if (stream && stream.is_open()) stream.close();
@@ -32,8 +36,8 @@ void Reader::Read() {
 
   ReadFormat();
   ReadVersion();
-
-
+  ExpectLineEnd("Version");
+  ReadTitle();
 
   printf("done!\n");
 }
@@ -48,7 +52,6 @@ void Reader::ReadFormat() {
 
   printf("Reading format %s\n", foundHeader.c_str());
 }
-
 
 void Reader::ReadVersion() {
 
@@ -77,16 +80,38 @@ void Reader::ReadVersion() {
     break;
   }
 
-
-
   printf("Reading version %s\n", version->ToString().c_str());
 }
+
+void Reader::ReadTitle() {
+  std::string title;
+
+  switch (format) {
+  case Format::BOS:
+    {
+      std::string titleHeader = GetNext();
+      if (titleHeader != headers[0])
+        throw std::exception(
+            ("Unexpected title header. Got:" + titleHeader + " Expected: " + headers[0]).c_str());
+      title = GetNext();
+    }
+    break;
+
+  case Format::PBOS:
+    title = GetNext();
+    break;
+  }
+  if (title == "") throw std::exception("Can't have empty title");
+
+  printf("TITLE: %s\n", title.c_str());
+}
+
 
 const bool Reader::TryGetFormat(Format &format, std::string &header) {
   header = GetNext();
 
-  auto it = headers.find(header);
-  if (it == headers.end()) {
+  auto it = formatHeaders.find(header);
+  if (it == formatHeaders.end()) {
     return false;
   }
   format = it->second;
@@ -145,7 +170,21 @@ const bool Reader::TryGetVersion(Version *&version, std::string &versionStr) {
 const std::string Reader::GetNext(const char &del) {
   std::string next;
   std::getline(stream, next, del);
-  return next;
+
+  const char *ws = "\r\n";
+  size_t start = next.find_first_not_of(ws);
+  if (start == std::string::npos) return "";
+  size_t end = next.find_last_not_of(ws);
+  return next.substr(start, end - start + 1);
+}
+
+
+const bool Reader::IsLineEnd(const std::string &read) const { return read == ""; }
+
+void Reader::ExpectLineEnd(const std::string &after) {
+  std::string next = GetNext();
+  if (!IsLineEnd(next))
+    throw std::exception(("Expected line end after " + after + ", got: " + next).c_str());
 }
 
 } // namespace BombOS
