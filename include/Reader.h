@@ -42,12 +42,12 @@ private:
   void ReadVersion();
 
   const std::string ReadTitle();
-  const TextureMap ReadTextures();
+  const TextureStore ReadTextures();
   const Map::MapSize ReadSize();
 
 private:
-  void ReadTexturesBOS(TextureMap &textures);
-  void ReadTexturesPBOS(TextureMap &textures);
+  void ReadTexturesBOS(TextureStore &textures);
+  void ReadTexturesPBOS(TextureStore &textures);
 
 private:
   const bool TryParseFormat(std::string &formatStr, Format &format);

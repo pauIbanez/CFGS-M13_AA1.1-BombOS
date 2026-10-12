@@ -41,7 +41,7 @@ const std::unique_ptr<Map::MapData> Reader::Read() {
   ReadVersion();
 
   const std::string title = ReadTitle();
-  const TextureMap textures = ReadTextures();
+  const TextureStore textures = ReadTextures();
   const Map::MapSize mapSize = ReadSize();
 
   return std::make_unique<Map::MapData>(title, textures, mapSize);
@@ -101,10 +101,10 @@ const std::string Reader::ReadTitle() {
   return title;
 }
 
-const TextureMap Reader::ReadTextures() {
+const TextureStore Reader::ReadTextures() {
   ExpectHeader("TEXTURES");
 
-  TextureMap textures;
+  TextureStore textures;
   switch (format) {
   case Format::BOS:
     ReadTexturesBOS(textures);
@@ -148,7 +148,7 @@ const Map::MapSize Reader::ReadSize() {
 }
 
 
-void Reader::ReadTexturesBOS(TextureMap &textures) {
+void Reader::ReadTexturesBOS(TextureStore &textures) {
   std::string sizeStr = GetNext();
   int size;
   try {
@@ -171,7 +171,7 @@ void Reader::ReadTexturesBOS(TextureMap &textures) {
   }
 }
 
-void Reader::ReadTexturesPBOS(TextureMap &textures) {
+void Reader::ReadTexturesPBOS(TextureStore &textures) {
 
   std::string texture = GetNext();
   short counter = 0;

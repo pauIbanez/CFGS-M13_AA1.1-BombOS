@@ -7,10 +7,12 @@
 namespace BombOS::Map {
 struct MapData {
   const std::string name;
-  const TextureMap textures;
+  const TextureStore textures;
   const MapSize mapSize;
 
-  MapData(const std::string name, const TextureMap textures, const MapSize mapSize)
+
+
+  MapData(const std::string name, const TextureStore textures, const MapSize mapSize)
       : name(name), textures(textures), mapSize(mapSize) {}
 };
 } // namespace BombOS::Map
