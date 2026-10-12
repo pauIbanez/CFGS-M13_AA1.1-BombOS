@@ -1,5 +1,6 @@
 #pragma once
 
+#include "FlatMap.h"
 #include "MapData.h"
 #include "MapSize.h"
 #include "Types.h"
@@ -42,17 +43,27 @@ private:
   void ReadVersion();
 
   const std::string ReadTitle();
-  const TextureStore ReadTextures();
+  const Map::TextureStore ReadTextures();
   const Map::MapSize ReadSize();
 
+  const Map::FlatMap ReadFloor(const Map::TextureStore &store, const Map::MapSize &size);
+  const Map::FlatMap ReadMap(const Map::TextureStore &store, const Map::MapSize &size);
+  const Map::FlatMap ReadCollisions(const Map::MapSize &size);
+
 private:
-  void ReadTexturesBOS(TextureStore &textures);
-  void ReadTexturesPBOS(TextureStore &textures);
+  void ReadTexturesBOS(Map::TextureStore &textures);
+  void ReadTexturesPBOS(Map::TextureStore &textures);
 
 private:
   const bool TryParseFormat(std::string &formatStr, Format &format);
   const bool TryParseVersion(std::string &versionStr, Version *&version);
 
+private:
+  const bool EnsureRegistered(const Map::TextureStore &store,
+                              const std::string &textureIdent) const;
+
+
+private:
   const std::string GetNext(const char &del = delimeter);
   void ExpectHeader(const std::string &header);
   const bool IsLineEnd(const std::string &read) const;

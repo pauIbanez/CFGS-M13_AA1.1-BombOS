@@ -1,17 +1,7 @@
 
-#include "Reader.h"
-#include "MapData.h"
-#include "Version.h"
-#include <cstddef>
-#include <cstdio>
-#include <exception>
-#include <fstream>
-#include <iostream>
-#include <memory>
-#include <string>
-#include <utility>
-#include <vector>
 
+#include "Reader.h"
+#include <charconv>
 namespace BombOS {
 
 const char Reader::delimeter = ';';
@@ -41,10 +31,13 @@ const std::unique_ptr<Map::MapData> Reader::Read() {
   ReadVersion();
 
   const std::string title = ReadTitle();
-  const TextureStore textures = ReadTextures();
+  const Map::TextureStore textureStore = ReadTextures();
   const Map::MapSize mapSize = ReadSize();
+  const Map::FlatMap floor = ReadFloor(textureStore, mapSize);
+  const Map::FlatMap main = ReadMap(textureStore, mapSize);
+  const Map::FlatMap collisions = ReadCollisions(mapSize);
 
-  return std::make_unique<Map::MapData>(title, textures, mapSize);
+  return std::make_unique<Map::MapData>(title, textureStore, mapSize, floor, main, collisions);
 }
 
 
@@ -101,25 +94,25 @@ const std::string Reader::ReadTitle() {
   return title;
 }
 
-const TextureStore Reader::ReadTextures() {
+const Map::TextureStore Reader::ReadTextures() {
   ExpectHeader("TEXTURES");
 
-  TextureStore textures;
+  Map::TextureStore textureStore;
   switch (format) {
   case Format::BOS:
-    ReadTexturesBOS(textures);
+    ReadTexturesBOS(textureStore);
     break;
 
   case Format::PBOS:
-    ReadTexturesPBOS(textures);
+    ReadTexturesPBOS(textureStore);
     break;
   }
 
-  for (auto [k, v] : textures) {
+  for (auto [k, v] : textureStore) {
     printf("%s: %s\n", k.c_str(), v.c_str());
   }
 
-  return textures;
+  return textureStore;
 }
 
 const Map::MapSize Reader::ReadSize() {
@@ -147,8 +140,63 @@ const Map::MapSize Reader::ReadSize() {
   return Map::MapSize(height, width);
 }
 
+const Map::FlatMap Reader::ReadFloor(const Map::TextureStore &store, const Map::MapSize &size) {
+  ExpectHeader("FLOOR");
+  ExpectLineEnd("Floor header");
 
-void Reader::ReadTexturesBOS(TextureStore &textures) {
+  Map::FlatMap floorMap(size.height, size.width);
+
+  for (size_t y = 0; y < size.height; y++) {
+    for (size_t x = 0; x < size.width; x++) {
+      std::string textureIdent = GetNext();
+      EnsureRegistered(store, textureIdent);
+      floorMap.at(y, x) = textureIdent;
+    }
+    ExpectLineEnd("Floor column: " + std::to_string(y));
+  }
+
+  return floorMap;
+}
+
+const Map::FlatMap Reader::ReadMap(const Map::TextureStore &store, const Map::MapSize &size) {
+  ExpectHeader("MAP");
+  ExpectLineEnd("Map header");
+
+  Map::FlatMap mainMap(size.height, size.width);
+
+  for (size_t y = 0; y < size.height; y++) {
+    for (size_t x = 0; x < size.width; x++) {
+      std::string textureIdent = GetNext();
+      EnsureRegistered(store, textureIdent);
+      mainMap.at(y, x) = textureIdent;
+    }
+    ExpectLineEnd("Map column: " + std::to_string(y));
+  }
+
+  return mainMap;
+}
+
+const Map::FlatMap Reader::ReadCollisions(const Map::MapSize &size) {
+  ExpectHeader("COLLISIONS");
+  ExpectLineEnd("Collisions header");
+
+  Map::FlatMap collisionMap(size.height, size.width);
+
+  for (size_t y = 0; y < size.height; y++) {
+    for (size_t x = 0; x < size.width; x++) {
+      std::string collisionType = GetNext();
+      // TODO: Check accepted collision types. Throw or grab default.
+      // TODO: Consider creating a CollisionMap and parse the string to a CollisionType enum;
+      collisionMap.at(y, x) = collisionType;
+    }
+    ExpectLineEnd("Column: " + std::to_string(y));
+  }
+
+  return collisionMap;
+}
+
+
+void Reader::ReadTexturesBOS(Map::TextureStore &textures) {
   std::string sizeStr = GetNext();
   int size;
   try {
@@ -171,7 +219,7 @@ void Reader::ReadTexturesBOS(TextureStore &textures) {
   }
 }
 
-void Reader::ReadTexturesPBOS(TextureStore &textures) {
+void Reader::ReadTexturesPBOS(Map::TextureStore &textures) {
 
   std::string texture = GetNext();
   short counter = 0;
@@ -181,7 +229,6 @@ void Reader::ReadTexturesPBOS(TextureStore &textures) {
     texture = GetNext();
   }
 }
-
 
 
 const bool Reader::TryParseFormat(std::string &formatStr, Format &format) {
@@ -241,6 +288,18 @@ const bool Reader::TryParseVersion(std::string &versionStr, Version *&version) {
 }
 
 
+const bool Reader::EnsureRegistered(const Map::TextureStore &store,
+                                    const std::string &textureIdent) const {
+
+  if (textureIdent == "0") return true;
+  auto it = store.find(textureIdent);
+  if (it == store.end())
+    throw std::exception(
+        ("Texture identifyer " + textureIdent + " was not found in the store").c_str());
+  return true;
+}
+
+
 const std::string Reader::GetNext(const char &del) {
   std::string next;
   std::getline(stream, next, del);
@@ -258,7 +317,6 @@ void Reader::ExpectHeader(const std::string &header) {
   if (next != header)
     throw std::exception(("Unexpected header. Got:" + next + " Expected: " + header).c_str());
 }
-
 
 const bool Reader::IsLineEnd(const std::string &read) const { return read == ""; }
 
