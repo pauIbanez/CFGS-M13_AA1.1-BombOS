@@ -2,3 +2,24 @@ PBOS;0.0.1;;
 TITLE;Nivel 1;;
 TEXTURES;verde_oscuro.png;verde_claro.png;ladrillo.png;muro.png;metal.png;lava.png;;
 SIZE;6;6;;
+
+PALETTE;;
+# id;floor;wall;collision;;
+B;metal;metal;1;;
+a;verde_oscuro;-;0;;
+b;verde_claro;-;0;;
+wa;verde_oscuro;muro;1;;
+wb;verde_claro;muro;1;;
+da;verde_oscuro;ladrillo;D;;
+db;verde_claro;ladrillo;D;;
+
+GRID;;
+B;B;B;B;B;B;;
+B;a;b;a;b;B;;
+B;b;wa;db;wa;B;;
+B;a;wb;da;wb;B;;
+B;b;wa;db;wa;B;;
+B;B;B;B;B;B;;
+
+OBJECTS;;
+1;1;4;;
