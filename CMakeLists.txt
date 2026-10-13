@@ -15,13 +15,14 @@ file(GLOB_RECURSE SOURCES
 )
 
 
+
 add_executable(BombOS ${SOURCES}  ./release/icon.rc)
 
-set_target_properties(BombOS PROPERTIES
-  WIN32_EXECUTABLE $<NOT:$<CONFIG:Debug>>
-  LINK_FLAGS_RELEASE "/ENTRY:mainCRTStartup"
-  LINK_FLAGS_RELWITHDEBINFO "/ENTRY:mainCRTStartup"
-)
+# set_target_properties(BombOS PROPERTIES
+#   WIN32_EXECUTABLE $<NOT:$<CONFIG:Debug>>
+#   LINK_FLAGS_RELEASE "/ENTRY:mainCRTStartup"
+#   LINK_FLAGS_RELWITHDEBINFO "/ENTRY:mainCRTStartup"
+# )
 
 file(GLOB_RECURSE BombOS_ALL_HEADERS "${CMAKE_SOURCE_DIR}/src/*.h")
 set(BombOS_INCLUDE_DIRS "")
@@ -35,6 +36,7 @@ list(REMOVE_DUPLICATES BombOS_INCLUDE_DIRS)
 
 target_include_directories(BombOS PRIVATE
   "${CMAKE_SOURCE_DIR}/src"
+  "${CMAKE_SOURCE_DIR}/include"
   ${BombOS_INCLUDE_DIRS}
 )
 
@@ -43,14 +45,8 @@ install(TARGETS BombOS
   RUNTIME DESTINATION .
 )
 
-install(DIRECTORY "${CMAKE_BINARY_DIR}/"
+
+install(DIRECTORY "${CMAKE_SOURCE_DIR}/assets"
   DESTINATION .
-  FILES_MATCHING
-  PATTERN "*.dll"
-  PATTERN "CMakeFiles" EXCLUDE
-  PATTERN "default" EXCLUDE
 )
 
-install(DIRECTORY "${CMAKE_BINARY_DIR}/resources"
-  DESTINATION .
-)
