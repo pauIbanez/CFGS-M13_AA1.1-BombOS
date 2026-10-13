@@ -1,14 +1,11 @@
-# Nuclear clean
-rm -rf build/sdk-debug build/sdk-release out/Crow2D_SDK
+#Nuclear clean
+rm -rf ./out
 
 # Configure
-cmake --preset sdk-debug
-cmake --preset sdk-release
+cmake --preset release
 
 # Build
-cmake --build --preset sdk-debug
-cmake --build --preset sdk-release
+cmake --build --preset release
 
 # Install both into the same SDK prefix
-cmake --install build/sdk-debug --prefix out/Crow2D_SDK
-cmake --install build/sdk-release --prefix out/Crow2D_SDK
+cmake --install build/release --prefix out/BombOS

@@ -25,4 +25,5 @@ int main() {
 
   delete readerBOS;
   delete readerPBOS;
+  system("pause");
 }
