@@ -1,6 +1,5 @@
 #pragma once
 
-#include "FlatMap.h"
 #include "MapSize.h"
 #include "Reader.h"
 
@@ -21,9 +20,9 @@ private:
   const Map::TextureStore ReadTextures();
   const Map::MapSize ReadSize();
 
-  const Map::FlatMap ReadFloor(const Map::TextureStore &store, const Map::MapSize &size);
-  const Map::FlatMap ReadMap(const Map::TextureStore &store, const Map::MapSize &size);
-  const Map::FlatMap ReadCollisions(const Map::MapSize &size);
+  const Map::StringMap ReadFloor(const Map::TextureStore &store, const Map::MapSize &size);
+  const Map::StringMap ReadMap(const Map::TextureStore &store, const Map::MapSize &size);
+  const Map::StringMap ReadCollisions(const Map::MapSize &size);
 
 
 private:
