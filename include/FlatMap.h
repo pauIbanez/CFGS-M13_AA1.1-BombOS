@@ -3,12 +3,13 @@
 #include <string>
 #include <vector>
 
+
 namespace BombOS::Map {
-struct FlatMap {
-  std::vector<std::string> data;
+template <typename T = std::string> struct FlatMap {
+  std::vector<T> data;
 
   size_t width;
   FlatMap(size_t width, size_t height) : data(height * width), width(width) {}
-  std::string &at(size_t x, size_t y) { return data[y * width + x]; }
+  T &at(size_t x, size_t y) { return data[y * width + x]; }
 };
 } // namespace BombOS::Map

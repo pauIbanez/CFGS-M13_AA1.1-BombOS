@@ -7,9 +7,9 @@ const std::unique_ptr<Map::MapData> BOSReader::Read() {
   const std::string title = ReadTitle();
   const Map::TextureStore textureStore = ReadTextures();
   const Map::MapSize mapSize = ReadSize();
-  const Map::FlatMap floor = ReadFloor(textureStore, mapSize);
-  const Map::FlatMap main = ReadMap(textureStore, mapSize);
-  const Map::FlatMap collisions = ReadCollisions(mapSize);
+  const Map::StringMap floor = ReadFloor(textureStore, mapSize);
+  const Map::StringMap main = ReadMap(textureStore, mapSize);
+  const Map::StringMap collisions = ReadCollisions(mapSize);
 
   return std::make_unique<Map::MapData>(title, textureStore, mapSize, floor, main, collisions);
 }
@@ -72,11 +72,12 @@ const Map::MapSize BOSReader::ReadSize() {
   return Map::MapSize(width, height);
 }
 
-const Map::FlatMap BOSReader::ReadFloor(const Map::TextureStore &store, const Map::MapSize &size) {
+const Map::StringMap BOSReader::ReadFloor(const Map::TextureStore &store,
+                                          const Map::MapSize &size) {
   ExpectHeader("FLOOR");
   ExpectLineEnd("Floor header");
 
-  Map::FlatMap floorMap(size.width, size.height);
+  Map::StringMap floorMap(size.width, size.height);
 
   for (size_t y = 0; y < size.height; y++) {
     for (size_t x = 0; x < size.width; x++) {
@@ -90,11 +91,11 @@ const Map::FlatMap BOSReader::ReadFloor(const Map::TextureStore &store, const Ma
   return floorMap;
 }
 
-const Map::FlatMap BOSReader::ReadMap(const Map::TextureStore &store, const Map::MapSize &size) {
+const Map::StringMap BOSReader::ReadMap(const Map::TextureStore &store, const Map::MapSize &size) {
   ExpectHeader("MAP");
   ExpectLineEnd("Map header");
 
-  Map::FlatMap mainMap(size.width, size.height);
+  Map::StringMap mainMap(size.width, size.height);
 
   for (size_t y = 0; y < size.height; y++) {
     for (size_t x = 0; x < size.width; x++) {
@@ -108,11 +109,11 @@ const Map::FlatMap BOSReader::ReadMap(const Map::TextureStore &store, const Map:
   return mainMap;
 }
 
-const Map::FlatMap BOSReader::ReadCollisions(const Map::MapSize &size) {
+const Map::StringMap BOSReader::ReadCollisions(const Map::MapSize &size) {
   ExpectHeader("COLLISIONS");
   ExpectLineEnd("Collisions header");
 
-  Map::FlatMap collisionMap(size.width, size.height);
+  Map::StringMap collisionMap(size.width, size.height);
 
   for (size_t y = 0; y < size.height; y++) {
     for (size_t x = 0; x < size.width; x++) {
