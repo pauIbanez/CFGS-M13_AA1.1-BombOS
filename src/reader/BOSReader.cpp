@@ -82,7 +82,7 @@ const Map::FlatMap BOSReader::ReadFloor(const Map::TextureStore &store, const Ma
     for (size_t x = 0; x < size.width; x++) {
       std::string textureIdent = GetNext();
       EnsureRegistered(store, textureIdent);
-      floorMap.at(y, x) = textureIdent;
+      floorMap.at(x, y) = textureIdent;
     }
     ExpectLineEnd("Floor column: " + std::to_string(y));
   }
@@ -100,7 +100,7 @@ const Map::FlatMap BOSReader::ReadMap(const Map::TextureStore &store, const Map:
     for (size_t x = 0; x < size.width; x++) {
       std::string textureIdent = GetNext();
       EnsureRegistered(store, textureIdent);
-      mainMap.at(y, x) = textureIdent;
+      mainMap.at(x, y) = textureIdent;
     }
     ExpectLineEnd("Map column: " + std::to_string(y));
   }
@@ -119,7 +119,7 @@ const Map::FlatMap BOSReader::ReadCollisions(const Map::MapSize &size) {
       std::string collisionType = GetNext();
       // TODO: Check accepted collision types. Throw or grab default.
       // TODO: Consider creating a CollisionMap and parse the string to a CollisionType enum;
-      collisionMap.at(y, x) = collisionType;
+      collisionMap.at(x, y) = collisionType;
     }
     ExpectLineEnd("Column: " + std::to_string(y));
   }
