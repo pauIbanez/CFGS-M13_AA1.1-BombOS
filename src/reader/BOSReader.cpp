@@ -49,14 +49,14 @@ const Map::TextureStore BOSReader::ReadTextures() {
 
 const Map::MapSize BOSReader::ReadSize() {
   ExpectHeader("SIZE");
-  std::string heightStr = GetNext();
   std::string widthStr = GetNext();
+  std::string heightStr = GetNext();
 
-  short height;
   short width;
+  short height;
   try {
-    height = std::stoi(heightStr);
     width = std::stoi(widthStr);
+    height = std::stoi(heightStr);
   } catch (const std::exception &) {
     throw std::exception("Invalid size");
   }
