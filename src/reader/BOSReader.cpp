@@ -49,14 +49,14 @@ const Map::TextureStore BOSReader::ReadTextures() {
 
 const Map::MapSize BOSReader::ReadSize() {
   ExpectHeader("SIZE");
-  std::string heightStr = GetNext();
   std::string widthStr = GetNext();
+  std::string heightStr = GetNext();
 
-  short height;
   short width;
+  short height;
   try {
-    height = std::stoi(heightStr);
     width = std::stoi(widthStr);
+    height = std::stoi(heightStr);
   } catch (const std::exception &) {
     throw std::exception("Invalid size");
   }
@@ -68,21 +68,21 @@ const Map::MapSize BOSReader::ReadSize() {
   ExpectLineEnd("Size");
 
 
-  printf("SIZE: %i %i\n", height, width);
-  return Map::MapSize(height, width);
+  printf("SIZE: %i %i\n", width, height);
+  return Map::MapSize(width, height);
 }
 
 const Map::FlatMap BOSReader::ReadFloor(const Map::TextureStore &store, const Map::MapSize &size) {
   ExpectHeader("FLOOR");
   ExpectLineEnd("Floor header");
 
-  Map::FlatMap floorMap(size.height, size.width);
+  Map::FlatMap floorMap(size.width, size.height);
 
   for (size_t y = 0; y < size.height; y++) {
     for (size_t x = 0; x < size.width; x++) {
       std::string textureIdent = GetNext();
       EnsureRegistered(store, textureIdent);
-      floorMap.at(y, x) = textureIdent;
+      floorMap.at(x, y) = textureIdent;
     }
     ExpectLineEnd("Floor column: " + std::to_string(y));
   }
@@ -94,13 +94,13 @@ const Map::FlatMap BOSReader::ReadMap(const Map::TextureStore &store, const Map:
   ExpectHeader("MAP");
   ExpectLineEnd("Map header");
 
-  Map::FlatMap mainMap(size.height, size.width);
+  Map::FlatMap mainMap(size.width, size.height);
 
   for (size_t y = 0; y < size.height; y++) {
     for (size_t x = 0; x < size.width; x++) {
       std::string textureIdent = GetNext();
       EnsureRegistered(store, textureIdent);
-      mainMap.at(y, x) = textureIdent;
+      mainMap.at(x, y) = textureIdent;
     }
     ExpectLineEnd("Map column: " + std::to_string(y));
   }
@@ -112,14 +112,14 @@ const Map::FlatMap BOSReader::ReadCollisions(const Map::MapSize &size) {
   ExpectHeader("COLLISIONS");
   ExpectLineEnd("Collisions header");
 
-  Map::FlatMap collisionMap(size.height, size.width);
+  Map::FlatMap collisionMap(size.width, size.height);
 
   for (size_t y = 0; y < size.height; y++) {
     for (size_t x = 0; x < size.width; x++) {
       std::string collisionType = GetNext();
       // TODO: Check accepted collision types. Throw or grab default.
       // TODO: Consider creating a CollisionMap and parse the string to a CollisionType enum;
-      collisionMap.at(y, x) = collisionType;
+      collisionMap.at(x, y) = collisionType;
     }
     ExpectLineEnd("Column: " + std::to_string(y));
   }
