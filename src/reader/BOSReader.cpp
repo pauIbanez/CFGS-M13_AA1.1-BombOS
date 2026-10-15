@@ -1,6 +1,7 @@
 
 
 #include "BOSReader.h"
+#include <cstdio>
 namespace BombOS {
 
 const std::unique_ptr<Map::MapData> BOSReader::Read() {
@@ -83,10 +84,19 @@ const Map::StringMap BOSReader::ReadFloor(const Map::TextureStore &store,
     for (size_t x = 0; x < size.width; x++) {
       std::string textureIdent = GetNext();
       EnsureRegistered(store, textureIdent);
-      floorMap.at(x, y) = textureIdent;
+      floorMap.At(x, y) = textureIdent;
     }
     ExpectLineEnd("Floor column: " + std::to_string(y));
   }
+
+  short i = 0;
+  for (std::string tile : floorMap.Get()) {
+    printf("%s", tile.c_str());
+    i++;
+    if (i % size.width == 0) printf("\n");
+  }
+
+
 
   return floorMap;
 }
@@ -101,10 +111,11 @@ const Map::StringMap BOSReader::ReadMap(const Map::TextureStore &store, const Ma
     for (size_t x = 0; x < size.width; x++) {
       std::string textureIdent = GetNext();
       EnsureRegistered(store, textureIdent);
-      mainMap.at(x, y) = textureIdent;
+      mainMap.At(x, y) = textureIdent;
     }
     ExpectLineEnd("Map column: " + std::to_string(y));
   }
+
 
   return mainMap;
 }
@@ -120,7 +131,7 @@ const Map::StringMap BOSReader::ReadCollisions(const Map::MapSize &size) {
       std::string collisionType = GetNext();
       // TODO: Check accepted collision types. Throw or grab default.
       // TODO: Consider creating a CollisionMap and parse the string to a CollisionType enum;
-      collisionMap.at(x, y) = collisionType;
+      collisionMap.At(x, y) = collisionType;
     }
     ExpectLineEnd("Column: " + std::to_string(y));
   }
