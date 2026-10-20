@@ -1,5 +1,3 @@
-
-
 #pragma once
 #include <raylib-cpp.hpp>
 
@@ -10,12 +8,13 @@ public:
   static constexpr int screenWidth = 800;
   static constexpr int screenHeight = 450;
 
-  static void Init();
-  static bool ShouldClose() { return window.ShouldClose(); }
-  static void BeginFrame();
-  static void EndFrame();
+  WindowManager();
+
+  bool ShouldClose() const;
+  void BeginFrame();
+  void EndFrame();
 
 private:
-  static raylib::Window window;
+  raylib::Window window;
 };
 } // namespace BombOS

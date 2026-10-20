@@ -2,6 +2,8 @@
 #include "WindowManager.h"
 #include <cstdio>
 #include <exception>
+#include <raylib-cpp/Keyboard.hpp>
+#include <raylib.h>
 
 
 using namespace BombOS;
@@ -11,33 +13,34 @@ int main() {
 
   try {
     reader->Read();
-    WindowManager::Init();
+    WindowManager windowManager;
 
+    raylib::Camera3D camera({16.0f, 14.0f, 16.0f}, // position
+                            {0.0f, 0.0f, 0.0f},    // target
+                            {0.0f, 1.0f, 0.0f},    // up
+                            45.0f, CAMERA_PERSPECTIVE);
 
-    // Camera camera = {};
-    // camera.position = {16.0f, 14.0f, 16.0f};
-    // camera.target = {0.0f, 0.0f, 0.0f};
-    // camera.up = {0.0f, 1.0f, 0.0f}; // currently missing — needed for the camera to render correctly
-    // camera.fovy = 45.0f;
-    // camera.projection = CAMERA_PERSPECTIVE;
-    // bool pause = false;
+    while (!windowManager.ShouldClose()) {
+      // Lock the mouse only after clicking the window, so it can't grab it while hidden behind other apps
+      if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && !IsCursorHidden()) DisableCursor();
+      if (!IsWindowFocused() && IsCursorHidden()) EnableCursor();
 
-    while (!WindowManager::ShouldClose()) {
       // Update
       // if (IsKeyPressed(KEY_P)) pause = !pause;
       // if (!pause) UpdateCamera(&camera, CAMERA_ORBITAL);
+      camera.Update(CAMERA_ORBITAL);
 
+      if (raylib::Keyboard::IsKeyPressed(KEY_ESCAPE)) EnableCursor();
       // // Draw
-      WindowManager::BeginFrame();
-      // BeginMode3D(camera);
-      // // DrawModel(...)
-      // EndMode3D();
-      WindowManager::EndFrame();
+      windowManager.BeginFrame();
+      camera.BeginMode();
+      DrawGrid(10, 1.0f);
+      DrawCube({0, 0, 0}, 2, 2, 2, RED);
+      // model.Draw({0,0,0});   // raylib::Model
+      camera.EndMode();
+
+      windowManager.EndFrame();
     }
-
-    WindowManager::Shutdown();
-
-
 
   } catch (const std::exception &e) {
     printf("BOSError: %s\n", e.what());

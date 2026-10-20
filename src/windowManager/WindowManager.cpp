@@ -4,11 +4,12 @@
 
 namespace BombOS {
 
-void WindowManager::Init() {
-
-  window = raylib::Window(screenWidth, screenHeight, APP_NAME);
+WindowManager::WindowManager() : window(screenWidth, screenHeight, APP_NAME) {
   window.SetTargetFPS(60);
+  window.SetExitKey(KEY_NULL); // ESC no longer closes the window
 }
+
+bool WindowManager::ShouldClose() const { return window.ShouldClose(); }
 
 void WindowManager::BeginFrame() { window.BeginDrawing().ClearBackground(RAYWHITE); }
 
