@@ -123,6 +123,22 @@ target_include_directories(${APP_NAME} PRIVATE
   find_package(raylib CONFIG REQUIRED)
   target_link_libraries(${APP_NAME}  PRIVATE raylib)
 
+  # raylib's config only links libraylib itself. On Windows vcpkg builds it as a DLL with GLFW
+  # inside, but on Linux/macOS it's a static lib, so its own dependencies must be linked here
+  if(NOT WIN32)
+    find_package(glfw3 CONFIG REQUIRED)
+    find_package(OpenGL REQUIRED)
+    find_package(Threads REQUIRED)
+    target_link_libraries(${APP_NAME} PRIVATE glfw OpenGL::GL Threads::Threads ${CMAKE_DL_LIBS})
+    if(APPLE)
+      target_link_libraries(${APP_NAME} PRIVATE
+        "-framework Cocoa" "-framework IOKit" "-framework CoreVideo"
+        "-framework CoreAudio" "-framework AudioToolbox")
+    else()
+      target_link_libraries(${APP_NAME} PRIVATE m)
+    endif()
+  endif()
+
 # Data folders: mirrored next to the exe on every build, copied on install
 foreach(_dir IN ITEMS assets resources)
   string(TOUPPER "${_dir}" _dir_upper)
