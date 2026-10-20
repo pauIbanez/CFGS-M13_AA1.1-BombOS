@@ -5,8 +5,8 @@ set(APP_NAME    "BombOS")
 set(APP_VERSION "0.0.1")
 set(APP_ICON    "${CMAKE_SOURCE_DIR}/icon.ico")  # "" = no icon
 set(APP_WINDOW_MODE "CONSOLE")  # CONSOLE | WINDOW | AUTO (console in Debug, window otherwise)
-option(APP_USE_ASSETS    "Ship assets/ next to the exe"    ON)
-option(APP_USE_RESOURCES "Ship resources/ next to the exe" OFF)
+set(APP_USE_ASSETS    ON)  # ship assets/ next to the exe
+set(APP_USE_RESOURCES OFF)  # ship resources/ next to the exe
 # ---------------------------------------------
 
 project(${APP_NAME} VERSION ${APP_VERSION} LANGUAGES CXX)
@@ -58,6 +58,9 @@ configure_file("${CMAKE_SOURCE_DIR}/cmake/AppConfig.h.in" "${APP_GENERATED_DIR}/
 
 if(WIN32)
   if(APP_ICON)
+    if(NOT EXISTS "${APP_ICON}")
+      message(FATAL_ERROR "APP_ICON is set but ${APP_ICON} does not exist")
+    endif()
     set(APP_ICON_LINE "IDI_ICON1 ICON \"${APP_ICON}\"")
   else()
     set(APP_ICON_LINE "")
@@ -92,8 +95,11 @@ foreach(_dir IN ITEMS assets resources)
   set(_src "${CMAKE_SOURCE_DIR}/${_dir}")
   set(_dst "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${_dir}")
 
-  if(NOT APP_USE_${_dir_upper} OR NOT EXISTS "${_src}")
+  if(NOT APP_USE_${_dir_upper})
     continue()
+  endif()
+  if(NOT IS_DIRECTORY "${_src}")
+    message(FATAL_ERROR "APP_USE_${_dir_upper} is ON but ${_src} does not exist")
   endif()
 
   if(DEV_PRESET)
