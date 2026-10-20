@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.31)
 
 # ---- App config (single source of truth) ----
 set(APP_NAME    "BombOS")
-set(APP_VERSION "0.0.1")
+set(APP_VERSION "0.0.2")
 set(APP_ICON    "${CMAKE_SOURCE_DIR}/icon.ico")  # "" = no icon
 set(APP_WINDOW_MODE "CONSOLE")  # CONSOLE | WINDOW | AUTO (console in Debug, window otherwise)
 set(APP_USE_ASSETS    ON)  # ship assets/ next to the exe

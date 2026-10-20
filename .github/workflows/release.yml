@@ -1,7 +1,8 @@
 name: Release
 
 # Builds a zip per platform listed in APP_PLATFORMS (CMakeLists.txt).
-# Run it by hand from the Actions tab, or push a tag like v0.1.0 to also publish a GitHub release.
+# Run it by hand from the Actions tab, or push a tag like v0.1.0 to also create a draft GitHub
+# release with generated notes, which you review and publish from the Releases page.
 on:
   workflow_dispatch:
   push:
@@ -60,3 +61,5 @@ jobs:
       - uses: softprops/action-gh-release@v2
         with:
           files: dist/*.zip
+          draft: true # stays private until you review it and click Publish
+          generate_release_notes: true # pre-filled from commits/PRs since the last tag

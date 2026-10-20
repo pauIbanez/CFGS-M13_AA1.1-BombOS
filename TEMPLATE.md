@@ -187,7 +187,9 @@ Runs `scripts/release.sh` and keeps the zips. It **never runs on a normal push**
 | Trigger                                                   | Where the zips end up                                                                                 |
 | --------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
 | **Actions** tab → _Release_ → _Run workflow_              | The **Artifacts** section of that run (login required, deleted after 90 days). Use it to test builds. |
-| Pushing a tag: `git tag v0.1.0 && git push origin v0.1.0` | The same artifacts **plus** a **GitHub Release** with all zips attached (public, permanent).          |
+| Pushing a tag: `git tag v0.1.0 && git push origin v0.1.0` | The same artifacts **plus** a **draft GitHub Release** with all zips attached.                        |
+
+A tag push never publishes anything by itself. The release is created as a **draft**, visible only to people with write access, and its notes are pre-filled from the commits and pull requests since the previous tag. To ship it, open the repository's **Releases** page, edit the draft (title, notes, extra files such as a signed installer), and click **Publish release**. Once published it's public and permanent.
 
 Keep the tag matching `APP_VERSION`. The release is named after the tag, but the zips are named after `APP_VERSION`.
 
