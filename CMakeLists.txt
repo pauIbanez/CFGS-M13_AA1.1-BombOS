@@ -1,5 +1,14 @@
 cmake_minimum_required(VERSION 3.25)
-project(BombOS VERSION 0.1.0 LANGUAGES CXX)
+
+# ---- App config (single source of truth) ----
+set(APP_NAME    "BombOS")
+set(APP_VERSION "0.0.1")
+set(APP_ICON    "${CMAKE_SOURCE_DIR}/release/icon.ico")  # "" = no icon
+option(APP_USE_ASSETS    "Ship assets/ next to the exe"    ON)
+option(APP_USE_RESOURCES "Ship resources/ next to the exe" OFF)
+# ---------------------------------------------
+
+project(${APP_NAME} VERSION ${APP_VERSION} LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -16,37 +25,86 @@ file(GLOB_RECURSE SOURCES
 
 
 
-add_executable(BombOS ${SOURCES}  ./release/icon.rc)
+add_executable(${APP_NAME} ${SOURCES})
 
-# set_target_properties(BombOS PROPERTIES
+# set_target_properties(${APP_NAME} PROPERTIES
 #   WIN32_EXECUTABLE $<NOT:$<CONFIG:Debug>>
 #   LINK_FLAGS_RELEASE "/ENTRY:mainCRTStartup"
 #   LINK_FLAGS_RELWITHDEBINFO "/ENTRY:mainCRTStartup"
 # )
 
-file(GLOB_RECURSE BombOS_ALL_HEADERS "${CMAKE_SOURCE_DIR}/src/*.h")
-set(BombOS_INCLUDE_DIRS "")
+# Generated files: AppConfig.h (name/version for C++) and app.rc (icon + version info)
+set(APP_GENERATED_DIR "${CMAKE_BINARY_DIR}/generated")
+configure_file("${CMAKE_SOURCE_DIR}/cmake/AppConfig.h.in" "${APP_GENERATED_DIR}/AppConfig.h" @ONLY)
 
-foreach(_header ${BombOS_ALL_HEADERS})
+if(WIN32)
+  if(APP_ICON)
+    set(APP_ICON_LINE "IDI_ICON1 ICON \"${APP_ICON}\"")
+  else()
+    set(APP_ICON_LINE "")
+  endif()
+  configure_file("${CMAKE_SOURCE_DIR}/cmake/app.rc.in" "${APP_GENERATED_DIR}/app.rc" @ONLY)
+  target_sources(${APP_NAME} PRIVATE "${APP_GENERATED_DIR}/app.rc")
+endif()
+
+file(GLOB_RECURSE APP_ALL_HEADERS "${CMAKE_SOURCE_DIR}/src/*.h")
+set(APP_INCLUDE_DIRS "")
+
+foreach(_header ${APP_ALL_HEADERS})
   get_filename_component(_dir "${_header}" DIRECTORY)
-  list(APPEND BombOS_INCLUDE_DIRS "${_dir}")
+  list(APPEND APP_INCLUDE_DIRS "${_dir}")
 endforeach()
 
-list(REMOVE_DUPLICATES BombOS_INCLUDE_DIRS)
+list(REMOVE_DUPLICATES APP_INCLUDE_DIRS)
 
-target_include_directories(BombOS PRIVATE
+target_include_directories(${APP_NAME} PRIVATE
   "${CMAKE_SOURCE_DIR}/src"
   "${CMAKE_SOURCE_DIR}/include"
-  ${BombOS_INCLUDE_DIRS}
+  "${APP_GENERATED_DIR}"
+  ${APP_INCLUDE_DIRS}
 )
 
 
-install(TARGETS BombOS
-  RUNTIME DESTINATION .
+# Data folders: symlinked next to the exe in dev, copied on install
+file(MAKE_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+
+foreach(_dir IN ITEMS assets resources)
+  string(TOUPPER "${_dir}" _dir_upper)
+  set(_src "${CMAKE_SOURCE_DIR}/${_dir}")
+  set(_dst "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${_dir}")
+
+  if(NOT APP_USE_${_dir_upper} OR NOT EXISTS "${_src}")
+    continue()
+  endif()
+
+  if(DEV_PRESET)
+    # Replace stale copies; keep an existing symlink as is
+    if(EXISTS "${_dst}" AND NOT IS_SYMLINK "${_dst}")
+      file(REMOVE_RECURSE "${_dst}")
+    endif()
+    if(NOT IS_SYMLINK "${_dst}")
+      file(CREATE_LINK "${_src}" "${_dst}" RESULT _link_result SYMBOLIC)
+      if(NOT _link_result EQUAL 0)
+        # Symlinks need Developer Mode on Windows; fall back to a copy (refreshed every configure)
+        message(STATUS "Could not symlink ${_dir}/ (${_link_result}), copying instead")
+        file(COPY "${_src}" DESTINATION "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+      endif()
+    endif()
+  endif()
+
+  install(DIRECTORY "${_src}" DESTINATION ${APP_NAME})
+endforeach()
+
+
+install(TARGETS ${APP_NAME}
+  RUNTIME DESTINATION ${APP_NAME}
 )
 
 
-install(DIRECTORY "${CMAKE_SOURCE_DIR}/assets"
-  DESTINATION .
+# `cmake --build --preset <preset> --target run` builds and runs the app
+add_custom_target(run
+  COMMAND $<TARGET_FILE:${APP_NAME}>
+  DEPENDS ${APP_NAME}
+  WORKING_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
+  USES_TERMINAL
 )
-

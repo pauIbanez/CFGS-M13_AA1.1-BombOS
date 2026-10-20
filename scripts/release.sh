@@ -1,3 +1,6 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
 #Nuclear clean
 rm -rf ./out
 
@@ -7,5 +10,5 @@ cmake --preset release
 # Build
 cmake --build --preset release
 
-# Install both into the same SDK prefix
-cmake --install build/release --prefix out/BombOS
+# Install into out/<APP_NAME> (folder name comes from CMakeLists.txt)
+cmake --install build/release --prefix out
