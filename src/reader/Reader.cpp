@@ -4,6 +4,7 @@
 #include "BOSReader.h"
 #include "PBOSReader.h"
 #include <charconv>
+#include <vector>
 namespace BombOS {
 
 const char Reader::delimeter = ';';
@@ -39,6 +40,7 @@ const std::unique_ptr<Map::MapData> Reader::Read() {
   case Format::PBOS:
     return PBOSReader(std::move(stream)).Read();
   }
+  throw std::runtime_error("Unsupported format");
 }
 
 

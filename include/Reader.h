@@ -4,9 +4,11 @@
 #include "Types.h"
 #include "Version.h"
 #include <fstream>
+#include <memory>
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
+#include <utility>
 
 
 
