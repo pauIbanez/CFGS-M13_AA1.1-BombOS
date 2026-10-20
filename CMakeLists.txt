@@ -3,7 +3,8 @@ cmake_minimum_required(VERSION 3.25)
 # ---- App config (single source of truth) ----
 set(APP_NAME    "BombOS")
 set(APP_VERSION "0.0.1")
-set(APP_ICON    "${CMAKE_SOURCE_DIR}/release/icon.ico")  # "" = no icon
+set(APP_ICON    "${CMAKE_SOURCE_DIR}/icon.ico")  # "" = no icon
+set(APP_WINDOW_MODE "CONSOLE")  # CONSOLE | WINDOW | AUTO (console in Debug, window otherwise)
 option(APP_USE_ASSETS    "Ship assets/ next to the exe"    ON)
 option(APP_USE_RESOURCES "Ship resources/ next to the exe" OFF)
 # ---------------------------------------------
@@ -27,11 +28,29 @@ file(GLOB_RECURSE SOURCES
 
 add_executable(${APP_NAME} ${SOURCES})
 
-# set_target_properties(${APP_NAME} PROPERTIES
-#   WIN32_EXECUTABLE $<NOT:$<CONFIG:Debug>>
-#   LINK_FLAGS_RELEASE "/ENTRY:mainCRTStartup"
-#   LINK_FLAGS_RELWITHDEBINFO "/ENTRY:mainCRTStartup"
-# )
+# Console vs window app (AUTO = console in Debug, window otherwise)
+if(APP_WINDOW_MODE STREQUAL "WINDOW")
+  set(APP_WINDOWED ON)
+elseif(APP_WINDOW_MODE STREQUAL "CONSOLE")
+  set(APP_WINDOWED OFF)
+elseif(APP_WINDOW_MODE STREQUAL "AUTO")
+  if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set(APP_WINDOWED OFF)
+  else()
+    set(APP_WINDOWED ON)
+  endif()
+else()
+  message(FATAL_ERROR "APP_WINDOW_MODE must be CONSOLE, WINDOW or AUTO (got '${APP_WINDOW_MODE}')")
+endif()
+
+if(WIN32 AND APP_WINDOWED)
+  set_target_properties(${APP_NAME} PROPERTIES WIN32_EXECUTABLE ON)
+  # Keep int main() as the entry point instead of requiring WinMain
+  if(MSVC)
+    target_link_options(${APP_NAME} PRIVATE "/ENTRY:mainCRTStartup")
+  endif()
+endif()
+message(STATUS "${APP_NAME}: ${CMAKE_BUILD_TYPE} build, windowed = ${APP_WINDOWED}")
 
 # Generated files: AppConfig.h (name/version for C++) and app.rc (icon + version info)
 set(APP_GENERATED_DIR "${CMAKE_BINARY_DIR}/generated")
