@@ -19,9 +19,9 @@ int main() {
     std::unique_ptr<Map::MapData> mapData = reader->Read();
     WindowManager windowManager;
 
-    raylib::Camera3D camera({16.0f, 14.0f, 16.0f}, // position
-                            {0.0f, 0.0f, 0.0f},    // target
-                            {0.0f, 1.0f, 0.0f},    // up
+    raylib::Camera3D camera({5.0f, 14.0f, 5.0f}, // position
+                            {0.0f, 0.0f, 0.0f},  // target
+                            {0.0f, 1.0f, 0.0f},  // up
                             45.0f, CAMERA_PERSPECTIVE);
 
     Map::FlatMap<raylib::Vector2> floor(mapData->mapSize.width, mapData->mapSize.height);
@@ -60,11 +60,11 @@ int main() {
       camera.BeginMode();
       DrawGrid(10, 1.0f);
       for (raylib::Vector2 pos : floor.Get()) {
-        DrawCube({pos.x, 0, pos.y}, 1, 1, 1, RED);
+        DrawCube({pos.x, 0.5f, pos.y}, 1, 1, 1, RED);
       }
       for (raylib::Vector2 *pos : map.Get()) {
         if (pos == nullptr) continue;
-        DrawCube({pos->x, 1, pos->y}, 1, 1, 1, BLUE);
+        DrawCube({pos->x, 1.5f, pos->y}, 1, 1, 1, BLUE);
       }
 
 
