@@ -7,9 +7,19 @@ set(APP_ICON    "${CMAKE_SOURCE_DIR}/icon.ico")  # "" = no icon
 set(APP_WINDOW_MODE "CONSOLE")  # CONSOLE | WINDOW | AUTO (console in Debug, window otherwise)
 set(APP_USE_ASSETS    ON)  # ship assets/ next to the exe
 set(APP_USE_RESOURCES OFF)  # ship resources/ next to the exe
+set(APP_PLATFORMS Windows)  # where the app builds and releases: Windows Linux macOS
 # ---------------------------------------------
 
 project(${APP_NAME} VERSION ${APP_VERSION} LANGUAGES CXX)
+
+if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+  set(APP_PLATFORM "macOS")
+else()
+  set(APP_PLATFORM "${CMAKE_SYSTEM_NAME}")
+endif()
+if(NOT APP_PLATFORM IN_LIST APP_PLATFORMS)
+  message(FATAL_ERROR "${APP_NAME} is not enabled for ${APP_PLATFORM} (APP_PLATFORMS: ${APP_PLATFORMS})")
+endif()
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -105,6 +115,12 @@ endforeach()
 install(TARGETS ${APP_NAME}
   RUNTIME DESTINATION ${APP_NAME}
 )
+
+# Release zip (made by scripts/release.sh), e.g. BombOS-0.0.1-Windows.zip
+set(CPACK_GENERATOR ZIP)
+set(CPACK_PACKAGE_FILE_NAME "${APP_NAME}-${APP_VERSION}-${APP_PLATFORM}")
+set(CPACK_INCLUDE_TOPLEVEL_DIRECTORY OFF)  # install() already puts everything in ${APP_NAME}/
+include(CPack)
 
 
 # `cmake --build --preset <preset> --target run` builds and runs the app

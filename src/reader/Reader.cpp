@@ -25,7 +25,7 @@ Reader::~Reader() {
 const std::unique_ptr<Map::MapData> Reader::Read() {
   stream = std::ifstream(filePath);
   if (!stream) {
-    throw std::exception(("Could not open file: " + filePath).c_str());
+    throw std::runtime_error(("Could not open file: " + filePath).c_str());
   }
 
 
@@ -46,7 +46,7 @@ void Reader::ReadFormat() {
   std::string formatStr = GetNext();
 
   if (!TryParseFormat(formatStr, format)) {
-    throw std::exception(("Invalid format found " + formatStr).c_str());
+    throw std::runtime_error(("Invalid format found " + formatStr).c_str());
   }
 
   printf("Reading format %s\n", formatStr.c_str());
@@ -56,14 +56,14 @@ void Reader::ReadVersion() {
   std::string versionStr = GetNext();
 
   if (!TryParseVersion(versionStr, version)) {
-    throw std::exception(("Invalid version found " + versionStr).c_str());
+    throw std::runtime_error(("Invalid version found " + versionStr).c_str());
   }
 
 
   switch (format) {
   case Format::BOS:
     if (*version > BOSlatest) {
-      throw std::exception(("Version " + version->ToString() +
+      throw std::runtime_error(("Version " + version->ToString() +
                             " is unsupported! Highest BOS version is " + BOSlatest.ToString())
                                .c_str());
     }
@@ -71,7 +71,7 @@ void Reader::ReadVersion() {
 
   case Format::PBOS:
     if (*version > PBOSlatest) {
-      throw std::exception(("Version " + version->ToString() +
+      throw std::runtime_error(("Version " + version->ToString() +
                             " is unsupported! Highest PBOS version is " + PBOSlatest.ToString())
                                .c_str());
     }
@@ -87,7 +87,7 @@ const std::string Reader::ReadTitle() {
   ExpectHeader("TITLE");
 
   std::string title = GetNext();
-  if (title == "") throw std::exception("Can't have empty title");
+  if (title == "") throw std::runtime_error("Can't have empty title");
 
   ExpectLineEnd("Title");
 
@@ -122,10 +122,10 @@ const bool Reader::TryParseVersion(std::string &versionStr, Version *&version) {
   parts.push_back(part);
 
   if (format == Format::PBOS && parts.size() != 3) {
-    throw std::exception(("Version must be major.minor.patch, found " + versionStr).c_str());
+    throw std::runtime_error(("Version must be major.minor.patch, found " + versionStr).c_str());
   }
   if (format == Format::BOS && parts.size() != 2) {
-    throw std::exception(("Version must be major.patch, found " + versionStr).c_str());
+    throw std::runtime_error(("Version must be major.patch, found " + versionStr).c_str());
   }
 
   short numbers[3] = {0, 0, 0};
@@ -134,7 +134,7 @@ const bool Reader::TryParseVersion(std::string &versionStr, Version *&version) {
     const char *end = begin + parts[i].size();
     auto [ptr, ec] = std::from_chars(begin, end, numbers[i]);
     if (ec != std::errc() || ptr != end || numbers[i] < 0) {
-      throw std::exception(("Invalid version part '" + parts[i] + "' in " + versionStr).c_str());
+      throw std::runtime_error(("Invalid version part '" + parts[i] + "' in " + versionStr).c_str());
     }
   }
 
@@ -156,7 +156,7 @@ const bool Reader::TryParseVersion(std::string &versionStr, Version *&version) {
 const std::string Reader::GetNext(const char &del) {
   std::string next;
   std::getline(stream, next, del);
-  if (stream.eof()) throw std::exception("Unexpected end of file");
+  if (stream.eof()) throw std::runtime_error("Unexpected end of file");
 
   const char *ws = "\r\n";
   size_t start = next.find_first_not_of(ws);
@@ -168,7 +168,7 @@ const std::string Reader::GetNext(const char &del) {
 void Reader::ExpectHeader(const std::string &header) {
   std::string next = GetNext();
   if (next != header)
-    throw std::exception(("Unexpected header. Got:" + next + " Expected: " + header).c_str());
+    throw std::runtime_error(("Unexpected header. Got:" + next + " Expected: " + header).c_str());
 }
 
 const bool Reader::IsLineEnd(const std::string &read) const { return read == ""; }
@@ -176,13 +176,13 @@ const bool Reader::IsLineEnd(const std::string &read) const { return read == "";
 void Reader::ExpectLineEnd(const std::string &after) {
   std::string next = GetNext();
   if (!IsLineEnd(next))
-    throw std::exception(("Expected line end after " + after + ", got: " + next).c_str());
+    throw std::runtime_error(("Expected line end after " + after + ", got: " + next).c_str());
 }
 
 void Reader::ExpectEnd() {
   stream >> std::ws;
   if (stream.peek() != std::char_traits<char>::eof())
-    throw std::exception("Expected end of file, found more data");
+    throw std::runtime_error("Expected end of file, found more data");
 }
 
 } // namespace BombOS

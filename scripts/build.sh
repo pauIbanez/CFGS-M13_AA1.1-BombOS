@@ -3,6 +3,8 @@ set -euo pipefail
 
 preset=$1
 
+source "$(dirname "$0")/env.sh"
+
 printf "[Build] Running pre-build commands\n"
 
 printf "[Build] Configuring preset: %s\n" "$preset"

@@ -1,4 +1,4 @@
-#include "reader.h"
+#include "Reader.h"
 #include <cstdio>
 #include <exception>
 
@@ -12,18 +12,19 @@ int main() {
   // printf("Reading BOS:\n");
   try {
     readerBOS->Read();
-  } catch (std::exception e) {
+  } catch (const std::exception &e) {
     printf("BOSError: %s\n", e.what());
   }
 
   // printf("\n\nReading PBOS:\n");
   // try {
   //   readerPBOS->Read();
-  // } catch (std::exception e) {
+  // } catch (const std::exception &e) {
   //   printf("PBOSError: %s\n", e.what());
   // }
 
   delete readerBOS;
   // delete readerPBOS;
-  system("pause");
+  printf("\nPress Enter to exit...");
+  getchar();
 }

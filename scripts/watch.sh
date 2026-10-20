@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Load the compiler env once here, so every rebuild inherits it
+source "$(dirname "$0")/env.sh"
+
 printf "Starting watcher...\n"
 
 run_after=1
