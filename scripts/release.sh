@@ -1,16 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-source "$(dirname "$0")/env.sh"
-
 #Nuclear clean
 rm -rf ./out
 
-# Configure
-cmake --preset release
-
-# Build
-cmake --build --preset release
+# Configure + build (also loads the compiler env)
+bash "$(dirname "$0")/build.sh" release
 
 # Install into out/<APP_NAME> (folder name comes from CMakeLists.txt)
 cmake --install build/release --prefix out

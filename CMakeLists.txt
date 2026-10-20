@@ -8,9 +8,35 @@ set(APP_WINDOW_MODE "CONSOLE")  # CONSOLE | WINDOW | AUTO (console in Debug, win
 set(APP_USE_ASSETS    ON)  # ship assets/ next to the exe
 set(APP_USE_RESOURCES OFF)  # ship resources/ next to the exe
 set(APP_PLATFORMS Windows)  # where the app builds and releases: Windows Linux macOS
+set(APP_COMPILER "")  # "" = platform default (MSVC on Windows) | clang-cl | clang++ | g++
 # ---------------------------------------------
 
+# Personal overrides for this machine only (gitignored, see TEMPLATE.md and local.cmake.example)
+include("${CMAKE_SOURCE_DIR}/local.cmake" OPTIONAL RESULT_VARIABLE APP_LOCAL_CONFIG)
+if(APP_LOCAL_CONFIG)
+  message(STATUS "Using local overrides from local.cmake")
+endif()
+
+# The compiler is locked in when a build folder is first configured, so a change needs a
+# fresh folder. scripts/build.sh sees this error and recreates the folder automatically.
+if(DEFINED CACHE{APP_COMPILER_USED})
+  set(_previous_compiler "$CACHE{APP_COMPILER_USED}")
+elseif(DEFINED CACHE{CMAKE_CXX_COMPILER})
+  set(_previous_compiler "")  # folder configured before APP_COMPILER existed: default compiler
+else()
+  set(_previous_compiler "${APP_COMPILER}")  # fresh folder
+endif()
+if(NOT "${_previous_compiler}" STREQUAL "${APP_COMPILER}")
+  message(FATAL_ERROR "APP_COMPILER changed ('${_previous_compiler}' -> '${APP_COMPILER}'), "
+                      "delete ${CMAKE_BINARY_DIR} and configure again")
+endif()
+if(APP_COMPILER)
+  set(CMAKE_CXX_COMPILER "${APP_COMPILER}")
+endif()
+set(APP_COMPILER_USED "${APP_COMPILER}" CACHE INTERNAL "")
+
 project(${APP_NAME} VERSION ${APP_VERSION} LANGUAGES CXX)
+message(STATUS "${APP_NAME}: compiler ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}")
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
   set(APP_PLATFORM "macOS")

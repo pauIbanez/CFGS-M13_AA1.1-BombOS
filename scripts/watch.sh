@@ -16,7 +16,7 @@ shift $((OPTIND - 1))
 
 # Watch code, build config and data folders (only the ones that exist)
 watch_args=()
-for path in src include cmake assets resources CMakeLists.txt CMakePresets.json; do
+for path in src include cmake assets resources CMakeLists.txt CMakePresets.json local.cmake; do
   [[ -e "$path" ]] && watch_args+=(-w "$path")
 done
 
