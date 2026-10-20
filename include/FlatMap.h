@@ -14,6 +14,7 @@ private:
 public:
   FlatMap(size_t width, size_t height) : data(height * width), width(width) {}
   T &At(size_t x, size_t y) { return data[y * width + x]; }
+  const T &Read(size_t x, size_t y) const { return data[y * width + x]; }
 
   std::vector<T> Get() { return data; };
   size_t Size() { return data.size(); }

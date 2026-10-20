@@ -3,9 +3,7 @@
 #include "Reader.h"
 
 
-
 namespace BombOS {
-
 
 class PBOSReader : public Reader {
 
