@@ -1,18 +1,21 @@
 
 
 #pragma once
+#include <raylib-cpp.hpp>
 
 
 namespace BombOS {
 class WindowManager {
 public:
-  static const int screenWidth = 800;
-  static const int screenHeight = 450;
+  static constexpr int screenWidth = 800;
+  static constexpr int screenHeight = 450;
 
   static void Init();
-  static void Shutdown();
-  static bool ShouldClose();
+  static bool ShouldClose() { return window.ShouldClose(); }
   static void BeginFrame();
   static void EndFrame();
+
+private:
+  static raylib::Window window;
 };
 } // namespace BombOS
