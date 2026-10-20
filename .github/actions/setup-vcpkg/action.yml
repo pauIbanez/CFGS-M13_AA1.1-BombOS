@@ -1,0 +1,36 @@
+name: Set up vcpkg
+description: >
+  Clones and bootstraps vcpkg, exports VCPKG_ROOT (which CMakeLists.txt uses to load the vcpkg
+  toolchain) and caches built packages so dependencies aren't rebuilt from source on every run.
+
+runs:
+  using: composite
+  steps:
+    # vcpkg doesn't provide system libraries: raylib's GLFW backend needs the X11/OpenGL headers
+    - name: Install raylib system dependencies
+      if: runner.os == 'Linux'
+      shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y pkg-config libgl1-mesa-dev libglu1-mesa-dev xorg-dev \
+          libwayland-dev libxkbcommon-dev wayland-protocols
+
+    # Full clone (not shallow): vcpkg needs the history to resolve builtin-baseline in vcpkg.json
+    - name: Clone and bootstrap vcpkg
+      shell: bash
+      run: |
+        git clone https://github.com/microsoft/vcpkg "$RUNNER_TEMP/vcpkg"
+        if [[ "$RUNNER_OS" == "Windows" ]]; then "$RUNNER_TEMP/vcpkg/bootstrap-vcpkg.bat" -disableMetrics
+        else "$RUNNER_TEMP/vcpkg/bootstrap-vcpkg.sh" -disableMetrics; fi
+
+        mkdir -p "$RUNNER_TEMP/vcpkg-cache"
+        echo "VCPKG_ROOT=$RUNNER_TEMP/vcpkg" >>"$GITHUB_ENV"
+        echo "VCPKG_BINARY_SOURCES=clear;files,$RUNNER_TEMP/vcpkg-cache,readwrite" >>"$GITHUB_ENV"
+
+    # Built packages are reused until vcpkg.json (dependencies or baseline) changes
+    - name: Cache vcpkg packages
+      uses: actions/cache@v4
+      with:
+        path: ${{ runner.temp }}/vcpkg-cache
+        key: vcpkg-${{ runner.os }}-${{ hashFiles('vcpkg.json') }}
+        restore-keys: vcpkg-${{ runner.os }}-
