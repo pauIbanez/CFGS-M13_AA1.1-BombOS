@@ -1,7 +1,2 @@
 CompileFlags:
   CompilationDatabase: build/dev
----
-If:
-  PathMatch: .*\.h
-CompileFlags:
-  Add: [-xc++, -std=c++17]

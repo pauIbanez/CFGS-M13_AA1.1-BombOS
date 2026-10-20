@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.25)
+cmake_minimum_required(VERSION 3.31)
 
 # ---- App config (single source of truth) ----
 set(APP_NAME    "BombOS")
@@ -69,84 +69,20 @@ if(WIN32)
   target_sources(${APP_NAME} PRIVATE "${APP_GENERATED_DIR}/app.rc")
 endif()
 
-file(GLOB_RECURSE APP_ALL_HEADERS "${CMAKE_SOURCE_DIR}/src/*.h")
-set(APP_INCLUDE_DIRS "")
-
-foreach(_header ${APP_ALL_HEADERS})
-  get_filename_component(_dir "${_header}" DIRECTORY)
-  list(APPEND APP_INCLUDE_DIRS "${_dir}")
-endforeach()
-
-list(REMOVE_DUPLICATES APP_INCLUDE_DIRS)
-
 target_include_directories(${APP_NAME} PRIVATE
   "${CMAKE_SOURCE_DIR}/src"
   "${CMAKE_SOURCE_DIR}/include"
   "${APP_GENERATED_DIR}"
-  ${APP_INCLUDE_DIRS}
 )
 
 
-# ---- External libraries (templates, uncomment and adapt) ----
-#
-# Pick ONE option per library. Every option ends with target_link_libraries(),
-# which also adds the library's include dirs and compile flags to the app.
-#
-# Suggested layout for libraries you drop into the repo:
-#   external/<lib>/include/   headers
-#   external/<lib>/lib/       .lib files (static libs, or import libs for DLLs)
-#   external/<lib>/bin/       .dll files
-#
-# -- A) Installed package (vcpkg, system install, a lib's own CMake config) --
-# find_package(fmt CONFIG REQUIRED)
-# target_link_libraries(${APP_NAME} PRIVATE fmt::fmt)
-#
-# -- B) Download and build from source (CMake-based libs, usually static) --
-# include(FetchContent)
-# FetchContent_Declare(fmt
-#   GIT_REPOSITORY https://github.com/fmtlib/fmt.git
-#   GIT_TAG        11.0.2              # always pin a tag or commit
-# )
-# FetchContent_MakeAvailable(fmt)
-# target_link_libraries(${APP_NAME} PRIVATE fmt::fmt)
-#
-# -- C) Prebuilt STATIC library (.lib, code gets baked into the .exe) --
-# add_library(mylib STATIC IMPORTED)
-# set_target_properties(mylib PROPERTIES
-#   IMPORTED_LOCATION             "${CMAKE_SOURCE_DIR}/external/mylib/lib/mylib.lib"
-#   IMPORTED_LOCATION_DEBUG       "${CMAKE_SOURCE_DIR}/external/mylib/lib/mylibd.lib"  # optional debug build
-#   INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_SOURCE_DIR}/external/mylib/include"
-# )
-# target_link_libraries(${APP_NAME} PRIVATE mylib)
-#
-# -- D) Prebuilt DYNAMIC library (.dll + import .lib, .dll must ship next to the .exe) --
-# add_library(mydll SHARED IMPORTED)
-# set_target_properties(mydll PROPERTIES
-#   IMPORTED_LOCATION             "${CMAKE_SOURCE_DIR}/external/mydll/bin/mydll.dll"  # loaded at runtime
-#   IMPORTED_IMPLIB               "${CMAKE_SOURCE_DIR}/external/mydll/lib/mydll.lib"  # linked at build time
-#   INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_SOURCE_DIR}/external/mydll/include"
-# )
-# target_link_libraries(${APP_NAME} PRIVATE mydll)
-#
-# # Copy the DLL next to the exe after each build (so dev/run works)...
-# add_custom_command(TARGET ${APP_NAME} POST_BUILD
-#   COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:mydll> $<TARGET_FILE_DIR:${APP_NAME}>
-# )
-# # ...and ship it with the release
-# install(IMPORTED_RUNTIME_ARTIFACTS mydll RUNTIME DESTINATION ${APP_NAME})
-#
-# -- E) Windows system library (comes with the OS/SDK, nothing to ship) --
-# target_link_libraries(${APP_NAME} PRIVATE user32 gdi32)
-# -------------------------------------------------------------
+# External libraries: see cmake/LIBRARIES.md for copy-paste templates
 
 
-# Data folders: symlinked next to the exe in dev, copied on install
-file(MAKE_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
-
+# Data folders: mirrored next to the exe on every build, copied on install
 foreach(_dir IN ITEMS assets resources)
   string(TOUPPER "${_dir}" _dir_upper)
   set(_src "${CMAKE_SOURCE_DIR}/${_dir}")
-  set(_dst "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${_dir}")
 
   if(NOT APP_USE_${_dir_upper})
     continue()
@@ -155,20 +91,12 @@ foreach(_dir IN ITEMS assets resources)
     message(FATAL_ERROR "APP_USE_${_dir_upper} is ON but ${_src} does not exist")
   endif()
 
-  if(DEV_PRESET)
-    # Replace stale copies; keep an existing symlink as is
-    if(EXISTS "${_dst}" AND NOT IS_SYMLINK "${_dst}")
-      file(REMOVE_RECURSE "${_dst}")
-    endif()
-    if(NOT IS_SYMLINK "${_dst}")
-      file(CREATE_LINK "${_src}" "${_dst}" RESULT _link_result SYMBOLIC)
-      if(NOT _link_result EQUAL 0)
-        # Symlinks need Developer Mode on Windows; fall back to a copy (refreshed every configure)
-        message(STATUS "Could not symlink ${_dir}/ (${_link_result}), copying instead")
-        file(COPY "${_src}" DESTINATION "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
-      endif()
-    endif()
-  endif()
+  # Custom targets always run, so edits (and deletions) always reach the build
+  add_custom_target(copy_${_dir}
+    COMMAND ${CMAKE_COMMAND} -E rm -rf "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${_dir}"
+    COMMAND ${CMAKE_COMMAND} -E copy_directory "${_src}" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${_dir}"
+  )
+  add_dependencies(${APP_NAME} copy_${_dir})
 
   install(DIRECTORY "${_src}" DESTINATION ${APP_NAME})
 endforeach()

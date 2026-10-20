@@ -11,6 +11,12 @@ while getopts "n" opt; do
 done
 shift $((OPTIND - 1))
 
-watchexec --shell=powershell -w src -w include -e cpp,h,html,css,js -r --stop-signal SIGTERM \
+# Watch code, build config and data folders (only the ones that exist)
+watch_args=()
+for path in src include cmake assets resources CMakeLists.txt CMakePresets.json; do
+  [[ -e "$path" ]] && watch_args+=(-w "$path")
+done
+
+watchexec "${watch_args[@]}" -r \
   -E RUN_AFTER="$run_after" \
   -- bash ./scripts/dev.sh

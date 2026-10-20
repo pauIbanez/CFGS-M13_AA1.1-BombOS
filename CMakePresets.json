@@ -1,8 +1,8 @@
 {
-  "version": 3,
+  "version": 10,
   "cmakeMinimumRequired": {
     "major": 3,
-    "minor": 16,
+    "minor": 31,
     "patch": 0
   },
   "configurePresets": [
@@ -13,7 +13,6 @@
       "binaryDir": "${sourceDir}/build/dev",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
-        "DEV_PRESET": "ON",
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
       }
     },
