@@ -2,8 +2,8 @@
 
 namespace BombOS::Map {
 struct MapSize {
-  short height, width = 0;
+  short width, height = 0;
 
-  MapSize(short height, short width) : height(height), width(width) {}
+  MapSize(short width, short height) : height(height), width(width) {}
 };
 } // namespace BombOS::Map
