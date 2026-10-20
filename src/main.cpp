@@ -22,20 +22,20 @@ int main() {
     // camera.projection = CAMERA_PERSPECTIVE;
     // bool pause = false;
 
-    // while (!WindowManager::ShouldClose()) {
-    //   // Update
-    //   if (IsKeyPressed(KEY_P)) pause = !pause;
-    //   if (!pause) UpdateCamera(&camera, CAMERA_ORBITAL);
+    while (!WindowManager::ShouldClose()) {
+      // Update
+      // if (IsKeyPressed(KEY_P)) pause = !pause;
+      // if (!pause) UpdateCamera(&camera, CAMERA_ORBITAL);
 
-    //   // Draw
-    //   WindowManager::BeginFrame();
-    //   BeginMode3D(camera);
-    //   // DrawModel(...)
-    //   EndMode3D();
-    //   WindowManager::EndFrame();
-    // }
+      // // Draw
+      WindowManager::BeginFrame();
+      // BeginMode3D(camera);
+      // // DrawModel(...)
+      // EndMode3D();
+      WindowManager::EndFrame();
+    }
 
-    // WindowManager::Shutdown();
+    WindowManager::Shutdown();
 
 
 
