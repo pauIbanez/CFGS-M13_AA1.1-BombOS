@@ -120,6 +120,8 @@ target_include_directories(${APP_NAME} PRIVATE
 
 # External libraries: see cmake/LIBRARIES.md for copy-paste templates
 
+  find_package(raylib CONFIG REQUIRED)
+  target_link_libraries(${APP_NAME}  PRIVATE raylib)
 
 # Data folders: mirrored next to the exe on every build, copied on install
 foreach(_dir IN ITEMS assets resources)

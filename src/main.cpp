@@ -1,4 +1,5 @@
 #include "Reader.h"
+#include "WindowManager.h"
 #include <cstdio>
 #include <exception>
 
@@ -6,25 +7,17 @@
 using namespace BombOS;
 
 int main() {
-  Reader *readerBOS = new Reader("./assets/level1.bos");
-  // Reader *readerPBOS = new Reader("./assets/level1_p.bos");
+  Reader *reader = new Reader("./assets/level1.bos");
 
-  // printf("Reading BOS:\n");
   try {
-    readerBOS->Read();
+    reader->Read();
+    WindowManager::Init();
   } catch (const std::exception &e) {
     printf("BOSError: %s\n", e.what());
   }
 
-  // printf("\n\nReading PBOS:\n");
-  // try {
-  //   readerPBOS->Read();
-  // } catch (const std::exception &e) {
-  //   printf("PBOSError: %s\n", e.what());
-  // }
 
-  delete readerBOS;
-  // delete readerPBOS;
+
+  delete reader;
   printf("\nPress Enter to exit...");
-  getchar();
 }
