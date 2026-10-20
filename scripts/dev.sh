@@ -11,10 +11,10 @@ else
 fi
 
 if [[ "${RUN_AFTER:-1}" == "1" ]]; then
-  echo "=========================="
-  echo "     Running Sandbox      "
-  echo "=========================="
-  ./build/dev/bin/BombOS.exe
+  echo "=================="
+  echo "     Running      "
+  echo "=================="
+  cmake --build --preset dev --target run
 else
   echo "Skipping execution (-n passed)"
 fi

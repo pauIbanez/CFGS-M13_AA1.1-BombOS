@@ -3,25 +3,26 @@ set -euo pipefail
 
 preset=$1
 
+source "$(dirname "$0")/env.sh"
+
 printf "[Build] Running pre-build commands\n"
 
 printf "[Build] Configuring preset: %s\n" "$preset"
-cmake --preset "$preset"
+configure_log="$(mktemp)"
+if ! cmake --preset "$preset" 2>&1 | tee "$configure_log"; then
+  # Switching APP_COMPILER needs a fresh build folder: recreate it once and retry
+  if grep -q "APP_COMPILER changed" "$configure_log"; then
+    printf "[Build] Compiler changed, recreating build/%s\n" "$preset"
+    rm -rf "build/$preset"
+    cmake --preset "$preset"
+  else
+    rm -f "$configure_log"
+    exit 1
+  fi
+fi
+rm -f "$configure_log"
 
 printf "[Build] Building preset: %s\n" "$preset"
 cmake --build --preset "$preset"
-
-
-ASSETS_SRC="$(pwd)/assets"
-ASSETS_DST="./build/$preset/bin/assets"
-
-if [[ "$preset" == "dev" ]]; then
-  if [[ ! -L "$ASSETS_DST" ]]; then
-    mkdir -p "$(dirname "$ASSETS_DST")"
-    rm -rf "$ASSETS_DST"
-    ln -s "$ASSETS_SRC" "$ASSETS_DST"
-    printf "[Build] Created assets symlink\n"
-  fi
-fi
 
 printf "[Build] Done!\n"

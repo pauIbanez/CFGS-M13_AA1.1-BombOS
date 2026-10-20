@@ -25,10 +25,10 @@ const Map::TextureStore BOSReader::ReadTextures() {
   try {
     size = std::stoi(sizeStr);
   } catch (const std::exception &) {
-    throw std::exception("Invalid texture size");
+    throw std::runtime_error("Invalid texture size");
   }
 
-  if (size < 0) throw std::exception("Invalid texture size");
+  if (size < 0) throw std::runtime_error("Invalid texture size");
 
   printf("Reading %i textures\n", size);
 
@@ -38,7 +38,7 @@ const Map::TextureStore BOSReader::ReadTextures() {
     std::string textureName = GetNext();
     ExpectLineEnd(textureName);
     if (!textureStore.emplace(ident, textureName).second)
-      throw std::exception(("Duplicate texture identifier: " + ident).c_str());
+      throw std::runtime_error(("Duplicate texture identifier: " + ident).c_str());
   }
 
   for (auto [k, v] : textureStore) {
@@ -59,11 +59,11 @@ const Map::MapSize BOSReader::ReadSize() {
     width = std::stoi(widthStr);
     height = std::stoi(heightStr);
   } catch (const std::exception &) {
-    throw std::exception("Invalid size");
+    throw std::runtime_error("Invalid size");
   }
 
   if (height <= 0 || width <= 0) {
-    throw std::exception("Size must be higher than 0!");
+    throw std::runtime_error("Size must be higher than 0!");
   }
 
   ExpectLineEnd("Size");
@@ -147,7 +147,7 @@ const bool BOSReader::EnsureRegistered(const Map::TextureStore &store,
   if (textureIdent == "0") return true;
   auto it = store.find(textureIdent);
   if (it == store.end())
-    throw std::exception(
+    throw std::runtime_error(
         ("Texture identifyer " + textureIdent + " was not found in the store").c_str());
   return true;
 }
