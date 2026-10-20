@@ -7,7 +7,7 @@ set(APP_ICON    "${CMAKE_SOURCE_DIR}/icon.ico")  # "" = no icon
 set(APP_WINDOW_MODE "CONSOLE")  # CONSOLE | WINDOW | AUTO (console in Debug, window otherwise)
 set(APP_USE_ASSETS    ON)  # ship assets/ next to the exe
 set(APP_USE_RESOURCES OFF)  # ship resources/ next to the exe
-set(APP_PLATFORMS Windows)  # where the app builds and releases: Windows Linux macOS
+set(APP_PLATFORMS Windows Linux macOS)  # where the app builds and releases: Windows Linux macOS
 set(APP_COMPILER "")  # "" = platform default (MSVC on Windows) | clang-cl | clang++ | g++
 # ---------------------------------------------
 
