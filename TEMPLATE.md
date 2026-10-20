@@ -51,7 +51,7 @@ assets/               Data files shipped next to the executable (optional)
 resources/            A second data folder, same rules (optional)
 cmake/                Templates CMake fills in (AppConfig.h.in, app.rc.in) and LIBRARIES.md
 scripts/              dev.sh, watch.sh, build.sh, release.sh, env.sh
-.github/workflows/    The release workflow
+.github/workflows/    CI checks (ci.yml) and releases (release.yml)
 build/                Generated build folders, one per preset (gitignored)
 out/                  Release output (gitignored)
 ```
@@ -174,7 +174,15 @@ See [`cmake/LIBRARIES.md`](cmake/LIBRARIES.md) for copy-paste templates: install
 
 ## Releases and CI
 
-`.github/workflows/release.yml` reads `APP_PLATFORMS` from `CMakeLists.txt` and runs `scripts/release.sh` on a clean GitHub virtual machine for each listed OS.
+Two workflows in `.github/workflows/`. Both read `APP_PLATFORMS` from `CMakeLists.txt` (through `scripts/ci-matrix.sh`) and run one clean GitHub virtual machine per listed OS.
+
+### CI checks (`ci.yml`)
+
+Runs on **every push to any branch** and builds the `dev` and `release` presets. Nothing is uploaded or published; the only result is a ✅ or ❌ next to the commit on GitHub. If you push again before a run finishes, the older run for that branch is cancelled.
+
+### Releases (`release.yml`)
+
+Runs `scripts/release.sh` and keeps the zips. It **never runs on a normal push**:
 
 | Trigger                                                   | Where the zips end up                                                                                 |
 | --------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
@@ -182,6 +190,8 @@ See [`cmake/LIBRARIES.md`](cmake/LIBRARIES.md) for copy-paste templates: install
 | Pushing a tag: `git tag v0.1.0 && git push origin v0.1.0` | The same artifacts **plus** a **GitHub Release** with all zips attached (public, permanent).          |
 
 Keep the tag matching `APP_VERSION`. The release is named after the tag, but the zips are named after `APP_VERSION`.
+
+The *Run workflow* button only appears once a workflow file is on the default branch (`master`/`main`). Until then, push-triggered workflows like CI still run on your branch.
 
 Actions is free for public repositories. Private repositories get a monthly minute allowance, and Windows minutes count double and macOS minutes ten times.
 

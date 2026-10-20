@@ -16,18 +16,7 @@ jobs:
       - uses: actions/checkout@v4
       - id: read
         run: |
-          platforms=$(sed -n 's/^set(APP_PLATFORMS[[:space:]]*\([^)]*\)).*/\1/p' CMakeLists.txt)
-          echo "APP_PLATFORMS: $platforms"
-          matrix='[]'
-          for p in $platforms; do
-            case "$p" in
-              Windows) os=windows-latest ;;
-              Linux)   os=ubuntu-latest ;;
-              macOS)   os=macos-latest ;;
-              *) echo "::error::Unknown platform '$p' in APP_PLATFORMS"; exit 1 ;;
-            esac
-            matrix=$(jq -c --arg p "$p" --arg os "$os" '. + [{platform: $p, os: $os}]' <<<"$matrix")
-          done
+          matrix=$(bash scripts/ci-matrix.sh)
           echo "matrix=$matrix" >>"$GITHUB_OUTPUT"
 
   build:
