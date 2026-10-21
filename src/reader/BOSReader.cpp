@@ -4,7 +4,7 @@
 #include <cstdio>
 namespace BombOS {
 
-const std::unique_ptr<Map::MapData> BOSReader::Read() {
+std::unique_ptr<Map::MapData> BOSReader::Read() {
   const std::string title = ReadTitle();
   const Map::TextureStore textureStore = ReadTextures();
   const Map::MapSize mapSize = ReadSize();

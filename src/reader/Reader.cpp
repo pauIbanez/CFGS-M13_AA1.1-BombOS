@@ -23,7 +23,7 @@ Reader::~Reader() {
   delete version;
 }
 
-const std::unique_ptr<Map::MapData> Reader::Read() {
+std::unique_ptr<Map::MapData> Reader::Read() {
   stream = std::ifstream(filePath);
   if (!stream) {
     throw std::runtime_error(("Could not open file: " + filePath).c_str());
