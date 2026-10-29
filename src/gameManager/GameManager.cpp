@@ -68,7 +68,7 @@ void GameManager::Render() {
 
   for (size_t i = 0; i < mapData->mapSize.width * mapData->mapSize.height; i++) {
     float x = i % mapData->mapSize.width;
-    float y = i / mapData->mapSize.width;
+    float y = (float)i / mapData->mapSize.width;
 
     const std::string &floor = mapData->floor.At(x, y);
     if (floor != "0") {

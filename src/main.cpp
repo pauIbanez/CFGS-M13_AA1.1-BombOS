@@ -18,7 +18,7 @@ int main() {
     }
 
   } catch (const std::exception &e) {
-    printf("BOSError: %s\n", e.what());
+    printf("Error: %s\n", e.what());
   }
 
   GameManager::Shutdown();
