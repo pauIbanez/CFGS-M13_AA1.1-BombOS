@@ -5,7 +5,7 @@
 namespace BombOS {
 class Player {
 public:
-  raylib::Vector3 position{0, 0, 0};
+  raylib::Vector3 position{0, 1, 0};
 
 
 

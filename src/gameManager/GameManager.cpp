@@ -41,7 +41,7 @@ void GameManager::Init() {
 
   player = std::make_unique<Player>();
 
-  LoadLevel("./assets/level3.bos");
+  LoadLevel("./assets/level1.bos");
 }
 
 void GameManager::Update() {
@@ -66,20 +66,23 @@ void GameManager::Render() {
   shader->BeginMode();
 
 
+
   for (size_t i = 0; i < mapData->mapSize.width * mapData->mapSize.height; i++) {
-    float x = i % mapData->mapSize.width;
-    float y = (float)i / mapData->mapSize.width;
+    size_t x = i % mapData->mapSize.width;
+    size_t y = i / mapData->mapSize.width;
+
+    raylib::Vector3 pos = raylib::Vector3{-(float)y, 0.5f, (float)x} + offset;
 
     const std::string &floor = mapData->floor.At(x, y);
     if (floor != "0") {
       const raylib::Texture2D &texture = textures[floor];
-      DrawPlaneTexture(texture, (raylib::Vector3{x, 0.5f, y} + offset), 1, 1, WHITE);
+      DrawPlaneTexture(texture, pos, 1, 1, WHITE);
     }
 
     const std::string &main = mapData->main.At(x, y);
     if (main != "0") {
       const raylib::Texture2D &texture = textures[main];
-      DrawCubeTexture(texture, (raylib::Vector3{x, 0.5f, y} + offset), 1, 1, 1, WHITE);
+      DrawCubeTexture(texture, pos, 1, 1, 1, WHITE);
     }
   }
   player->Render();
@@ -99,8 +102,8 @@ void GameManager::LoadLevel(const std::string &levelName) {
   Reader reader(levelName);
   mapData = reader.Read();
 
-  offset = raylib::Vector3{-(mapData->mapSize.width - 1) * 0.5f, 0,
-                           -(mapData->mapSize.height - 1) * 0.5f};
+  offset = raylib::Vector3{(mapData->mapSize.height - 1) * 0.5f, 0,
+                           -(mapData->mapSize.width - 1) * 0.5f};
 
   textures.clear();
   for (const std::pair<std::string, std::string> &item : mapData->textureStore) {
