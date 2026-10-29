@@ -36,7 +36,7 @@ public:
   virtual ~Reader();
 
 public:
-  virtual const std::unique_ptr<Map::MapData> Read();
+  virtual std::unique_ptr<Map::MapData> Read();
 
 protected:
   Reader(std::ifstream &&stream) : stream(std::move(stream)) {}

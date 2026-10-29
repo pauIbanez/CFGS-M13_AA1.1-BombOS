@@ -10,9 +10,9 @@ struct MapData {
   const std::string name;
   const TextureStore textureStore;
   const MapSize mapSize;
-  const StringMap floor;
-  const StringMap main;
-  const StringMap collisions;
+  StringMap floor;
+  StringMap main;
+  StringMap collisions;
 
 
   MapData(const std::string name, const TextureStore textures, const MapSize mapSize,
