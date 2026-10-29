@@ -6,7 +6,9 @@
 #include "rlights.h"
 #include <memory>
 #include <raylib-cpp.hpp>
+#include <raylib-cpp/Texture.hpp>
 #include <string>
+#include <unordered_map>
 
 namespace BombOS {
 class GameManager {
@@ -29,8 +31,8 @@ private:
 
   static std::unique_ptr<Map::MapData> mapData;
   static raylib::Vector3 offset;
-
   static std::unique_ptr<Player> player;
+  static std::unordered_map<std::string, raylib::Texture2D> textures;
 
 public:
   static void Init();
@@ -43,5 +45,11 @@ public:
   static void Shutdown();
 
   static bool ShouldClose();
+
+  static void DrawCubeTexture(Texture2D texture, Vector3 position, float width, float height,
+                              float length, Color color);
+
+  static void DrawPlaneTexture(Texture2D texture, Vector3 position, float width, float length,
+                               Color tint);
 };
 } // namespace BombOS

@@ -15,5 +15,5 @@ void Player::Update() {
   position += raylib::Vector3{dir.x, position.y, dir.y} * 10 * GetFrameTime();
 }
 
-void Player::Render() { DrawCubeV(position, {0.2f, 5, 0.2f}, YELLOW); }
+void Player::Render() { DrawCubeV(position, {0.2f, 1, 0.2f}, YELLOW); }
 } // namespace BombOS
