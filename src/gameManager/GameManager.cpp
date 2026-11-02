@@ -120,8 +120,11 @@ void GameManager::DrawWorld(bool drawFloor) {
     }
   }
 
-  for (const std::unique_ptr<Player> &player : players)
+  for (const std::unique_ptr<Player> &player : players) {
     player->Render(offset);
+    raylib::Vector3 pos = player->position + offset;
+    DrawShadowDisc({pos.x, 0.01f, pos.z}, 0.3f, shadowColor);
+  }
 }
 
 void GameManager::RenderShadowMap() {
@@ -298,6 +301,23 @@ void GameManager::DrawPlaneTexture(Texture2D texture, Vector3 position, float wi
   rlVertex3f(x + width / 2, y, z - length / 2);
   rlEnd();
   rlSetTexture(0);
+}
+void GameManager::DrawShadowDisc(Vector3 center, float radius, Color color) {
+  constexpr int segments = 20;
+  constexpr float step = 2.0f * PI / segments;
+
+  rlBegin(RL_TRIANGLES);
+  rlColor4ub(color.r, color.g, color.b, color.a);
+  rlNormal3f(0.0f, 1.0f, 0.0f);
+
+  // Wound counter-clockwise seen from above so backface culling keeps it
+  for (int i = 0; i < segments; i++) {
+    float a = i * step;
+    rlVertex3f(center.x, center.y, center.z);
+    rlVertex3f(center.x + cosf(a + step) * radius, center.y, center.z + sinf(a + step) * radius);
+    rlVertex3f(center.x + cosf(a) * radius, center.y, center.z + sinf(a) * radius);
+  }
+  rlEnd();
 }
 
 RenderTexture2D GameManager::LoadShadowMap(int size) {

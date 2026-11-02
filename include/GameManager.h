@@ -61,6 +61,8 @@ public:
   static void DrawPlaneTexture(Texture2D texture, Vector3 position, float width, float length,
                                Color tint);
 
+  static void DrawShadowDisc(Vector3 center, float radius, Color color);
+
 private:
   static void DrawWorld(bool drawFloor);
   static void RenderShadowMap();
