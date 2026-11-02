@@ -23,7 +23,7 @@ Reader::~Reader() {
   delete version;
 }
 
-const std::unique_ptr<Map::MapData> Reader::Read() {
+std::unique_ptr<Map::MapData> Reader::Read() {
   stream = std::ifstream(filePath);
   if (!stream) {
     throw std::runtime_error(("Could not open file: " + filePath).c_str());
@@ -66,16 +66,16 @@ void Reader::ReadVersion() {
   case Format::BOS:
     if (*version > BOSlatest) {
       throw std::runtime_error(("Version " + version->ToString() +
-                            " is unsupported! Highest BOS version is " + BOSlatest.ToString())
-                               .c_str());
+                                " is unsupported! Highest BOS version is " + BOSlatest.ToString())
+                                   .c_str());
     }
     break;
 
   case Format::PBOS:
     if (*version > PBOSlatest) {
       throw std::runtime_error(("Version " + version->ToString() +
-                            " is unsupported! Highest PBOS version is " + PBOSlatest.ToString())
-                               .c_str());
+                                " is unsupported! Highest PBOS version is " + PBOSlatest.ToString())
+                                   .c_str());
     }
     break;
   }
@@ -136,7 +136,8 @@ const bool Reader::TryParseVersion(std::string &versionStr, Version *&version) {
     const char *end = begin + parts[i].size();
     auto [ptr, ec] = std::from_chars(begin, end, numbers[i]);
     if (ec != std::errc() || ptr != end || numbers[i] < 0) {
-      throw std::runtime_error(("Invalid version part '" + parts[i] + "' in " + versionStr).c_str());
+      throw std::runtime_error(
+          ("Invalid version part '" + parts[i] + "' in " + versionStr).c_str());
     }
   }
 

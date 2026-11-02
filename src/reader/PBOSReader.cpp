@@ -3,7 +3,7 @@
 #include "PBOSReader.h"
 namespace BombOS {
 
-const std::unique_ptr<Map::MapData> PBOSReader::Read() {
+std::unique_ptr<Map::MapData> PBOSReader::Read() {
   const std::string title = ReadTitle();
   const Map::TextureStore textureStore = ReadTextures();
 

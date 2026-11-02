@@ -14,7 +14,7 @@ public:
   BOSReader(std::ifstream &&stream) : Reader(std::move(stream)) {}
 
 public:
-  const std::unique_ptr<Map::MapData> Read() override;
+  std::unique_ptr<Map::MapData> Read() override;
 
 private:
   const Map::TextureStore ReadTextures();
@@ -23,6 +23,7 @@ private:
   const Map::StringMap ReadFloor(const Map::TextureStore &store, const Map::MapSize &size);
   const Map::StringMap ReadMap(const Map::TextureStore &store, const Map::MapSize &size);
   const Map::StringMap ReadCollisions(const Map::MapSize &size);
+  const Map::StringMap ReadObjects(const Map::MapSize &size);
 
 
 private:
