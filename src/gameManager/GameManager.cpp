@@ -68,6 +68,8 @@ void GameManager::Update() {
 
   if (raylib::Keyboard::IsKeyPressed(KEY_ESCAPE)) EnableCursor();
 
+  if (raylib::Keyboard::IsKeyPressed(KEY_R)) StartLevel();
+
   for (const std::unique_ptr<Player> &player : players)
     player->Update();
 }
@@ -297,7 +299,6 @@ void GameManager::DrawPlaneTexture(Texture2D texture, Vector3 position, float wi
   rlEnd();
   rlSetTexture(0);
 }
-
 
 RenderTexture2D GameManager::LoadShadowMap(int size) {
   RenderTexture2D target{};
