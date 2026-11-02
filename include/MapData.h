@@ -7,9 +7,10 @@
 
 namespace BombOS::Map {
 struct MapData {
-  const std::string name;
-  const TextureStore textureStore;
-  const MapSize mapSize;
+  // Not const so a whole MapData can be reassigned (resetting a level from its loaded base)
+  std::string name;
+  TextureStore textureStore;
+  MapSize mapSize;
   StringMap floor;
   StringMap main;
   StringMap collisions;
@@ -21,5 +22,9 @@ struct MapData {
           const StringMap objects)
       : name(name), textureStore(textures), mapSize(mapSize), floor(floor), main(main),
         collisions(collisions), objects(objects) {}
+
+
+  MapData(const MapData &base) = default;
+  MapData &operator=(const MapData &base) = default;
 };
 } // namespace BombOS::Map

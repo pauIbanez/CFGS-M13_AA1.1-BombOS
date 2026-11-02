@@ -30,6 +30,7 @@ RenderTexture2D GameManager::shadowMap{};
 Matrix GameManager::lightVP{};
 int GameManager::lightVPLoc = -1;
 
+std::unique_ptr<Map::MapData> GameManager::loadedMap;
 std::unique_ptr<Map::MapData> GameManager::mapData;
 raylib::Vector3 GameManager::offset;
 
@@ -138,7 +139,7 @@ void GameManager::RenderShadowMap() {
   rlSetMatrixModelview(view);
   rlEnableDepthTest();
 
-  // Only casters, the floor just receives
+
   DrawWorld(false);
 
   rlDrawRenderBatchActive();
@@ -152,13 +153,13 @@ void GameManager::LoadLevel(const std::string &levelName) {
   isHalted = true;
 
   Reader reader(levelName);
-  mapData = reader.Read();
+  loadedMap = reader.Read();
 
-  offset = raylib::Vector3{(mapData->mapSize.height - 1) * 0.5f, 0,
-                           -(mapData->mapSize.width - 1) * 0.5f};
+  offset = raylib::Vector3{(loadedMap->mapSize.height - 1) * 0.5f, 0,
+                           -(loadedMap->mapSize.width - 1) * 0.5f};
 
   textures.clear();
-  for (const std::pair<std::string, std::string> &item : mapData->textureStore) {
+  for (const std::pair<std::string, std::string> &item : loadedMap->textureStore) {
     textures.emplace(item.first, raylib::Texture2D("./assets/textures/" + item.second));
   }
 
@@ -181,15 +182,17 @@ void GameManager::SpawnPlayers() {
 }
 
 void GameManager::StartLevel() {
-  // Reset objects
-  // Reset positions
+  if (mapData) *mapData = *loadedMap;
+  else mapData = std::make_unique<Map::MapData>(*loadedMap);
 
+  // Reset positions
   players.clear();
   SpawnPlayers();
 }
 
 void GameManager::Shutdown() {
   mapData.reset();
+  loadedMap.reset();
   UnloadShadowMap(shadowMap);
   shader.reset();
   window.reset();
@@ -206,14 +209,6 @@ void GameManager::DrawCubeTexture(Texture2D texture, Vector3 position, float wid
 
   // Set desired texture to be enabled while drawing following vertex data
   rlSetTexture(texture.id);
-
-  // Vertex data transformation can be defined with the commented lines,
-  // but in this example we calculate the transformed vertex data directly when calling rlVertex3f()
-  //rlPushMatrix();
-  // NOTE: Transformation is applied in inverse order (scale -> rotate -> translate)
-  //rlTranslatef(2.0f, 0.0f, 0.0f);
-  //rlRotatef(45, 0, 1, 0);
-  //rlScalef(2.0f, 2.0f, 2.0f);
 
   rlBegin(RL_QUADS);
   rlColor4ub(color.r, color.g, color.b, color.a);
@@ -303,7 +298,7 @@ void GameManager::DrawPlaneTexture(Texture2D texture, Vector3 position, float wi
   rlSetTexture(0);
 }
 
-// Depth-only framebuffer, the color output of the shadow pass is thrown away
+
 RenderTexture2D GameManager::LoadShadowMap(int size) {
   RenderTexture2D target{};
   target.id = rlLoadFramebuffer();
@@ -318,9 +313,11 @@ RenderTexture2D GameManager::LoadShadowMap(int size) {
     target.depth.height = size;
     target.depth.format = 19; // DEPTH_COMPONENT_24BIT
     target.depth.mipmaps = 1;
-    rlFramebufferAttach(target.id, target.depth.id, RL_ATTACHMENT_DEPTH, RL_ATTACHMENT_TEXTURE2D, 0);
+    rlFramebufferAttach(target.id, target.depth.id, RL_ATTACHMENT_DEPTH, RL_ATTACHMENT_TEXTURE2D,
+                        0);
 
-    if (!rlFramebufferComplete(target.id)) TraceLog(LOG_WARNING, "Shadow map framebuffer incomplete");
+    if (!rlFramebufferComplete(target.id))
+      TraceLog(LOG_WARNING, "Shadow map framebuffer incomplete");
     rlDisableFramebuffer();
   }
 

@@ -36,6 +36,7 @@ private:
   static Matrix lightVP;
   static int lightVPLoc;
 
+  static std::unique_ptr<Map::MapData> loadedMap;
   static std::unique_ptr<Map::MapData> mapData;
   static raylib::Vector3 offset;
   static std::vector<std::unique_ptr<Player>> players;
