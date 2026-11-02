@@ -22,7 +22,6 @@ void Level::Start() {
   if (mapData) *mapData = *loadedMap;
   else mapData = std::make_unique<Map::MapData>(*loadedMap);
 
-  // Reset positions
   players.clear();
   SpawnPlayers();
 }
@@ -36,6 +35,17 @@ void Level::Unload() {
   players.clear();
   mapData.reset();
   loadedMap.reset();
+}
+
+bool Level::IsSolidAt(const raylib::Vector2 pos) {
+  if (pos.x < 0 || pos.y < 0) return true;
+
+  const int x = (int)pos.x;
+  const int y = (int)pos.y;
+  const Map::MapSize &size = mapData->mapSize;
+  if (x >= size.width || y >= size.height) return true;
+
+  return mapData->collisions.Read(x, y) != "0";
 }
 
 void Level::SpawnPlayers() {

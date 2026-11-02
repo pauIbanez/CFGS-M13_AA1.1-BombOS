@@ -4,6 +4,7 @@
 #include "Player.h"
 #include <memory>
 #include <raylib-cpp.hpp>
+#include <raylib-cpp/Vector2.hpp>
 #include <string>
 #include <vector>
 
@@ -22,6 +23,7 @@ public:
   static void Start();
   static void Update();
   static void Unload();
+  static bool IsSolidAt(const raylib::Vector2 pos);
 
 private:
   static void SpawnPlayers();
