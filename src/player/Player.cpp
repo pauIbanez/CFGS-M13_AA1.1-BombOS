@@ -7,7 +7,7 @@
 namespace BombOS {
 
 const float Player::speed = 3;
-const float Player::cornerTolerance = 0.6f;
+const float Player::cornerTolerance = 0.3f;
 const float Player::epsilon = 0.01f;
 
 namespace {
