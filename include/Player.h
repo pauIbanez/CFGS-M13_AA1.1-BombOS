@@ -1,24 +1,23 @@
 #pragma once
 #include "raylib-cpp.hpp"
-#include <raylib-cpp/Vector3.hpp>
+#include <raylib-cpp/Vector2.hpp>
 
 
 namespace BombOS {
 class Player {
 
 public:
-  static const raylib::Vector3 size;
+  static const float speed;
 
 public:
   const short id;
-  raylib::Vector3 position{0, 1, 0};
+  raylib::Vector2 position;
 
 public:
-  Player(const short &id, const raylib::Vector3 &position) : id(id), position(position) {}
+  Player(const short &id, const raylib::Vector2 &position) : id(id), position(position) {}
 
 
 public:
   void Update();
-  void Render(const raylib::Vector3 &offset = {});
 };
 } // namespace BombOS

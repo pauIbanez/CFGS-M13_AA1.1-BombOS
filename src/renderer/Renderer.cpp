@@ -17,6 +17,7 @@ const float Renderer::lightDistance = 20.0f;
 const float Renderer::shadowStrength = 0.65f;
 const int Renderer::shadowMapSize = 2048;
 const Color Renderer::playerShadowColor{0, 0, 0, 70};
+const raylib::Vector3 Renderer::playerSize{0.2, 2, 0.2};
 
 RenderTexture2D Renderer::shadowMap{};
 Matrix Renderer::lightVP{};
@@ -69,41 +70,47 @@ void Renderer::Shutdown() {
   shader.reset();
 }
 
+raylib::Vector3 Renderer::GridToWorld(const raylib::Vector2 &cell, float height) {
+  const Map::MapSize &mapSize = Level::GetMapData().mapSize;
+
+  // Rows run along -X and columns along +Z, centered so the middle of the map sits at the origin
+  return {(mapSize.height - 1) * 0.5f - cell.y, height, cell.x - (mapSize.width - 1) * 0.5f};
+}
+
 void Renderer::DrawWorld(bool drawFloor) {
-  Map::MapData &mapData = Level::GetMapData();
-  const raylib::Vector3 &offset = Level::GetOffset();
+  const Map::MapData &mapData = Level::GetMapData();
 
   for (size_t i = 0; i < mapData.mapSize.width * mapData.mapSize.height; i++) {
     size_t x = i % mapData.mapSize.width;
     size_t y = i / mapData.mapSize.width;
 
-    raylib::Vector3 pos = raylib::Vector3{-(float)y, 0, (float)x} + offset;
+    raylib::Vector2 cell{(float)x, (float)y};
 
-    const std::string &floor = mapData.floor.At(x, y);
+    const std::string &floor = mapData.floor.Read(x, y);
     if (drawFloor && floor != "0") {
       const raylib::Texture2D &texture = Assets::GetTexture(floor);
-      DrawPlaneTexture(texture, pos, 1, 1, WHITE);
+      DrawPlaneTexture(texture, GridToWorld(cell, 0), 1, 1, WHITE);
     }
 
-    pos.y = 0.5f;
-    const std::string &main = mapData.main.At(x, y);
+    const std::string &main = mapData.main.Read(x, y);
     if (main != "0") {
       const raylib::Texture2D &texture = Assets::GetTexture(main);
-      DrawCubeTexture(texture, pos, 1, 1, 1, WHITE);
+      DrawCubeTexture(texture, GridToWorld(cell, 0.5f), 1, 1, 1, WHITE);
     }
   }
 
-  for (const std::unique_ptr<Player> &player : Level::GetPlayers()) {
-    player->Render(offset);
-    raylib::Vector3 pos = player->position + offset;
-    DrawShadowDisc({pos.x, 0.01f, pos.z}, 0.3f, playerShadowColor);
-  }
+  for (const std::unique_ptr<Player> &player : Level::GetPlayers())
+    DrawPlayer(*player);
+}
+
+void Renderer::DrawPlayer(const Player &player) {
+  DrawCubeV(GridToWorld(player.position, playerSize.y * 0.5f), playerSize, YELLOW);
+  DrawShadowDisc(GridToWorld(player.position, 0.01f), 0.3f, playerShadowColor);
 }
 
 void Renderer::RenderShadowMap() {
   const Map::MapData &mapData = Level::GetMapData();
 
-  // Orthographic box around the map as seen from the sun, wide enough for any orientation
   float width = (float)mapData.mapSize.width;
   float height = (float)mapData.mapSize.height;
   float extent = sqrtf(width * width + height * height) * 0.5f + 2.0f;
@@ -127,7 +134,7 @@ void Renderer::RenderShadowMap() {
 }
 
 void Renderer::DrawCubeTexture(Texture2D texture, Vector3 position, float width, float height,
-                              float length, Color color) {
+                               float length, Color color) {
   float x = position.x;
   float y = position.y;
   float z = position.z;
@@ -203,7 +210,7 @@ void Renderer::DrawCubeTexture(Texture2D texture, Vector3 position, float width,
   rlSetTexture(0);
 }
 void Renderer::DrawPlaneTexture(Texture2D texture, Vector3 position, float width, float length,
-                               Color tint) {
+                                Color tint) {
   float x = position.x, y = position.y, z = position.z;
 
   rlSetTexture(texture.id);

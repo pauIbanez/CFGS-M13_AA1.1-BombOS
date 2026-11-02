@@ -7,15 +7,11 @@ namespace BombOS {
 
 std::unique_ptr<Map::MapData> Level::loadedMap;
 std::unique_ptr<Map::MapData> Level::mapData;
-raylib::Vector3 Level::offset;
 std::vector<std::unique_ptr<Player>> Level::players;
 
 void Level::Load(const std::string &levelName) {
   Reader reader(levelName);
   loadedMap = reader.Read();
-
-  offset = raylib::Vector3{(loadedMap->mapSize.height - 1) * 0.5f, 0,
-                           -(loadedMap->mapSize.width - 1) * 0.5f};
 
   Assets::LoadTextures(loadedMap->textureStore);
 
@@ -51,8 +47,7 @@ void Level::SpawnPlayers() {
     auto [ptr, ec] = std::from_chars(begin, end, player);
     if (ec != std::errc() || ptr != end || player == 0) continue;
 
-    raylib::Vector3 pos{-(float)x, (Player::size.y * 0.5f), (float)y};
-    players.push_back(std::make_unique<Player>(player, pos));
+    players.push_back(std::make_unique<Player>(player, raylib::Vector2{(float)x, (float)y}));
   }
 }
 } // namespace BombOS

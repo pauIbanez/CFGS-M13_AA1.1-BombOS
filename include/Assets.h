@@ -15,7 +15,6 @@ public:
   static void LoadTextures(const Map::TextureStore &textureStore);
   static raylib::Texture2D &GetTexture(const std::string &name);
 
-  // Must run before the window closes, GPU resources can't be freed without a GL context
   static void Unload();
 };
 } // namespace BombOS
