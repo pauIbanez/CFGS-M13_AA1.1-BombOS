@@ -27,10 +27,11 @@ private:
   static raylib::Camera3D camera;
   static std::unique_ptr<raylib::Shader> shader;
 
-  static const raylib::Vector3 lightDir; // Direction the sunlight travels
-  static const float lightDistance;      // How far back the light camera sits from the map center
-  static const float shadowStrength;     // Brightness kept inside a shadow
+  static const raylib::Vector3 lightDir;
+  static const float lightDistance;
+  static const float shadowStrength;
   static const int shadowMapSize;
+  static const Color playerShadowColor;
 
   static RenderTexture2D shadowMap;
   static Matrix lightVP;

@@ -25,6 +25,7 @@ const raylib::Vector3 GameManager::lightDir = raylib::Vector3{0.25f, -1.0f, 0.45
 const float GameManager::lightDistance = 20.0f;
 const float GameManager::shadowStrength = 0.65f;
 const int GameManager::shadowMapSize = 2048;
+const Color GameManager::playerShadowColor{0, 0, 0, 70};
 
 RenderTexture2D GameManager::shadowMap{};
 Matrix GameManager::lightVP{};
@@ -123,7 +124,7 @@ void GameManager::DrawWorld(bool drawFloor) {
   for (const std::unique_ptr<Player> &player : players) {
     player->Render(offset);
     raylib::Vector3 pos = player->position + offset;
-    DrawShadowDisc({pos.x, 0.01f, pos.z}, 0.3f, shadowColor);
+    DrawShadowDisc({pos.x, 0.01f, pos.z}, 0.3f, playerShadowColor);
   }
 }
 
