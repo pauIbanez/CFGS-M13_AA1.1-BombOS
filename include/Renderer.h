@@ -2,6 +2,7 @@
 
 #include "Player.h"
 #include "WindowManager.h"
+#include <array>
 #include <memory>
 #include <raylib-cpp.hpp>
 
@@ -15,7 +16,13 @@ private:
   static const float shadowStrength;
   static const int shadowMapSize;
   static const Color playerShadowColor;
-  static const raylib::Vector3 playerSize;
+  static const float playerScale;
+  static const float animationFps;
+
+  // Resolved once after loading so drawing never looks assets up by name
+  static raylib::Model *playerModel;
+  static std::array<const raylib::ModelAnimation *, (size_t)Player::Animation::Count>
+      playerAnimations;
 
   static RenderTexture2D shadowMap;
   static Matrix lightVP;

@@ -16,7 +16,7 @@ raylib::Camera3D GameManager::camera;
 void GameManager::Init() {
   window = std::make_unique<WindowManager>();
 
-  camera = raylib::Camera3D({-7.5f, 14.0f, 0}, {0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, 45.0f,
+  camera = raylib::Camera3D({-6.0f, 14.0f, 0}, {0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, 45.0f,
                             CAMERA_PERSPECTIVE);
 
   Renderer::Init();

@@ -3,7 +3,7 @@
 
 namespace BombOS {
 
-const float Player::speed = 10;
+const float Player::speed = 3;
 
 void Player::Update() {
   raylib::Vector2 dir;
@@ -14,5 +14,20 @@ void Player::Update() {
 
   dir = dir.Normalize();
   position += dir * speed * GetFrameTime();
+
+  if (dir.Length() > 0) {
+    facing = dir;
+    SetAnimation(Animation::Run);
+  } else {
+    SetAnimation(Animation::Idle);
+  }
+
+  animationTime += GetFrameTime();
+}
+
+void Player::SetAnimation(Animation next) {
+  if (animation == next) return;
+  animation = next;
+  animationTime = 0;
 }
 } // namespace BombOS

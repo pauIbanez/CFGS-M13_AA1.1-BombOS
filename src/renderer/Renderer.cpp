@@ -17,7 +17,12 @@ const float Renderer::lightDistance = 20.0f;
 const float Renderer::shadowStrength = 0.65f;
 const int Renderer::shadowMapSize = 2048;
 const Color Renderer::playerShadowColor{0, 0, 0, 70};
-const raylib::Vector3 Renderer::playerSize{0.2, 2, 0.2};
+const float Renderer::playerScale = 0.65f;
+const float Renderer::animationFps = 60;
+
+raylib::Model *Renderer::playerModel = nullptr;
+std::array<const raylib::ModelAnimation *, (size_t)Player::Animation::Count>
+    Renderer::playerAnimations{};
 
 RenderTexture2D Renderer::shadowMap{};
 Matrix Renderer::lightVP{};
@@ -26,17 +31,24 @@ int Renderer::lightVPLoc = -1;
 void Renderer::Init() {
   shader = std::make_unique<raylib::Shader>("resources/shading.vs", "resources/shading.fs");
 
-  float shadePos[3] = {0.85f, 1.0f, 0.75f}; // back, top, right
-  float shadeNeg[3] = {0.85f, 0.5f, 0.75f}; // front, bottom, left
+  float shadePos[3] = {0.85f, 1.0f, 0.75f};
+  float shadeNeg[3] = {0.85f, 0.5f, 0.75f};
   shader->SetValue(shader->GetLocation("shadePos"), shadePos, SHADER_UNIFORM_VEC3);
   shader->SetValue(shader->GetLocation("shadeNeg"), shadeNeg, SHADER_UNIFORM_VEC3);
 
   shadowMap = LoadShadowMap(shadowMapSize);
-  int shadowMapSlot = 10; // Far from the slots rlgl's batch uses for its own textures
+  int shadowMapSlot = 10;
   shader->SetValue(shader->GetLocation("shadowMap"), &shadowMapSlot, SHADER_UNIFORM_INT);
   shader->SetValue(shader->GetLocation("lightDir"), &lightDir, SHADER_UNIFORM_VEC3);
   shader->SetValue(shader->GetLocation("shadowStrength"), &shadowStrength, SHADER_UNIFORM_FLOAT);
   lightVPLoc = shader->GetLocation("lightVP");
+
+
+  Assets::LoadModels();
+  playerModel = &Assets::GetModel("bomberman");
+  playerAnimations[(size_t)Player::Animation::Idle] = &Assets::GetAnimation("idle");
+  playerAnimations[(size_t)Player::Animation::Run] = &Assets::GetAnimation("run");
+  playerAnimations[(size_t)Player::Animation::Victory] = &Assets::GetAnimation("victory");
 }
 
 void Renderer::Render(WindowManager &window, raylib::Camera3D &camera) {
@@ -67,6 +79,8 @@ void Renderer::Render(WindowManager &window, raylib::Camera3D &camera) {
 void Renderer::Shutdown() {
   UnloadShadowMap(shadowMap);
   shadowMap = {};
+  playerModel = nullptr;
+  playerAnimations = {};
   shader.reset();
 }
 
@@ -104,7 +118,17 @@ void Renderer::DrawWorld(bool drawFloor) {
 }
 
 void Renderer::DrawPlayer(const Player &player) {
-  DrawCubeV(GridToWorld(player.position, playerSize.y * 0.5f), playerSize, YELLOW);
+  const raylib::ModelAnimation &animation = *playerAnimations[(size_t)player.animation];
+
+  // Every player shares the model, so pose it right before drawing each one
+  int frame = (int)(player.animationTime * animationFps) % animation.frameCount;
+  UpdateModelAnimation(*playerModel, animation, frame);
+
+  // Grid (x, y) maps to world (-y, x) on the XZ plane, and the model looks down +Z
+  float yaw = atan2f(-player.facing.y, player.facing.x) * RAD2DEG;
+
+  playerModel->Draw(GridToWorld(player.position), {0, 1, 0}, yaw,
+                    raylib::Vector3::One() * playerScale);
   DrawShadowDisc(GridToWorld(player.position, 0.01f), 0.3f, playerShadowColor);
 }
 
