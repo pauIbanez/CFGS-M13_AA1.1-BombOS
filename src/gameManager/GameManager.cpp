@@ -8,6 +8,7 @@
 #include <raylib-cpp/Texture.hpp>
 #include <raylib-cpp/Vector3.hpp>
 #include <raylib.h>
+#include <raymath.h>
 #include <rlgl.h>
 #include <utility>
 
@@ -20,9 +21,14 @@ std::unique_ptr<WindowManager> GameManager::window;
 raylib::Camera3D GameManager::camera;
 std::unique_ptr<raylib::Shader> GameManager::shader;
 
-const Color GameManager::shadowColor{0, 0, 0, 70};
-const float GameManager::shadowLength = 0.6f;
-const float GameManager::shadowHeight = 0.51f;
+const raylib::Vector3 GameManager::lightDir = raylib::Vector3{0.25f, -1.0f, 0.45f}.Normalize();
+const float GameManager::lightDistance = 20.0f;
+const float GameManager::shadowStrength = 0.65f;
+const int GameManager::shadowMapSize = 2048;
+
+RenderTexture2D GameManager::shadowMap{};
+Matrix GameManager::lightVP{};
+int GameManager::lightVPLoc = -1;
 
 std::unique_ptr<Map::MapData> GameManager::mapData;
 raylib::Vector3 GameManager::offset;
@@ -38,11 +44,19 @@ void GameManager::Init() {
 
   shader = std::make_unique<raylib::Shader>("resources/shading.vs", "resources/shading.fs");
 
-  // X sides, top, Z sides, bottom
-  float faceShade[4] = {0.85f, 1.0f, 0.75f, 0.5f};
-  shader->SetValue(shader->GetLocation("faceShade"), faceShade, SHADER_UNIFORM_VEC4);
+  float shadePos[3] = {0.85f, 1.0f, 0.75f}; // back, top, right
+  float shadeNeg[3] = {0.85f, 0.5f, 0.75f}; // front, bottom, left
+  shader->SetValue(shader->GetLocation("shadePos"), shadePos, SHADER_UNIFORM_VEC3);
+  shader->SetValue(shader->GetLocation("shadeNeg"), shadeNeg, SHADER_UNIFORM_VEC3);
 
-  LoadLevel("./assets/level1.bos");
+  shadowMap = LoadShadowMap(shadowMapSize);
+  int shadowMapSlot = 10; // Far from the slots rlgl's batch uses for its own textures
+  shader->SetValue(shader->GetLocation("shadowMap"), &shadowMapSlot, SHADER_UNIFORM_INT);
+  shader->SetValue(shader->GetLocation("lightDir"), &lightDir, SHADER_UNIFORM_VEC3);
+  shader->SetValue(shader->GetLocation("shadowStrength"), &shadowStrength, SHADER_UNIFORM_FLOAT);
+  lightVPLoc = shader->GetLocation("lightVP");
+
+  LoadLevel("./assets/level4.bos");
 }
 
 void GameManager::Update() {
@@ -58,25 +72,44 @@ void GameManager::Update() {
 }
 
 void GameManager::Render() {
+  RenderShadowMap();
+
   window->BeginFrame();
 
   camera.BeginMode();
   shader->BeginMode();
 
+  shader->SetValue(lightVPLoc, lightVP);
+  rlActiveTextureSlot(10);
+  rlEnableTexture(shadowMap.depth.id);
+  rlActiveTextureSlot(0);
 
+  DrawWorld(true);
 
+  shader->EndMode();
+
+  rlActiveTextureSlot(10);
+  rlDisableTexture();
+  rlActiveTextureSlot(0);
+
+  camera.EndMode();
+  window->EndFrame();
+}
+
+void GameManager::DrawWorld(bool drawFloor) {
   for (size_t i = 0; i < mapData->mapSize.width * mapData->mapSize.height; i++) {
     size_t x = i % mapData->mapSize.width;
     size_t y = i / mapData->mapSize.width;
 
-    raylib::Vector3 pos = raylib::Vector3{-(float)y, 0.5f, (float)x} + offset;
+    raylib::Vector3 pos = raylib::Vector3{-(float)y, 0, (float)x} + offset;
 
     const std::string &floor = mapData->floor.At(x, y);
-    if (floor != "0") {
+    if (drawFloor && floor != "0") {
       const raylib::Texture2D &texture = textures[floor];
       DrawPlaneTexture(texture, pos, 1, 1, WHITE);
     }
 
+    pos.y = 0.5f;
     const std::string &main = mapData->main.At(x, y);
     if (main != "0") {
       const raylib::Texture2D &texture = textures[main];
@@ -84,28 +117,32 @@ void GameManager::Render() {
     }
   }
 
-  // Fake shadows: drawn after the floor so they blend over it
-  for (auto [x, y, main] : mapData->main.GetWithIndex()) {
-    if (main == "0" || y + 1 >= mapData->mapSize.height) continue;
-    if (mapData->floor.Read(x, y + 1) == "0" || mapData->main.Read(x, y + 1) != "0") continue;
-
-    // Next row is toward the camera; shadow starts at the edge touching the wall
-    raylib::Vector3 tile = raylib::Vector3{-(float)(y + 1), shadowHeight, (float)x} + offset;
-    DrawPlane({tile.x + 0.5f - shadowLength * 0.5f, tile.y, tile.z}, {shadowLength, 1}, shadowColor);
-  }
-
-  for (const std::unique_ptr<Player> &player : players) {
-    raylib::Vector3 pos = player->position + offset;
-    DrawShadowDisc({pos.x, shadowHeight, pos.z}, Player::size.x * 0.6f, shadowColor);
-  }
-
   for (const std::unique_ptr<Player> &player : players)
     player->Render(offset);
+}
 
+void GameManager::RenderShadowMap() {
+  // Orthographic box around the map as seen from the sun, wide enough for any orientation
+  float width = (float)mapData->mapSize.width;
+  float height = (float)mapData->mapSize.height;
+  float extent = sqrtf(width * width + height * height) * 0.5f + 2.0f;
 
-  shader->EndMode();
-  camera.EndMode();
-  window->EndFrame();
+  Matrix view = MatrixLookAt(lightDir * -lightDistance, {0, 0, 0}, {0, 1, 0});
+  Matrix proj = MatrixOrtho(-extent, extent, -extent, extent, 0.1, lightDistance * 2.0f);
+  lightVP = MatrixMultiply(view, proj);
+
+  BeginTextureMode(shadowMap);
+  ClearBackground(WHITE);
+
+  rlSetMatrixProjection(proj);
+  rlSetMatrixModelview(view);
+  rlEnableDepthTest();
+
+  // Only casters, the floor just receives
+  DrawWorld(false);
+
+  rlDrawRenderBatchActive();
+  EndTextureMode();
 }
 
 void GameManager::Pause() {}
@@ -153,6 +190,7 @@ void GameManager::StartLevel() {
 
 void GameManager::Shutdown() {
   mapData.reset();
+  UnloadShadowMap(shadowMap);
   shader.reset();
   window.reset();
 }
@@ -265,21 +303,32 @@ void GameManager::DrawPlaneTexture(Texture2D texture, Vector3 position, float wi
   rlSetTexture(0);
 }
 
-void GameManager::DrawShadowDisc(Vector3 center, float radius, Color color) {
-  constexpr int segments = 20;
-  constexpr float step = 2.0f * PI / segments;
+// Depth-only framebuffer, the color output of the shadow pass is thrown away
+RenderTexture2D GameManager::LoadShadowMap(int size) {
+  RenderTexture2D target{};
+  target.id = rlLoadFramebuffer();
+  target.texture.width = size;
+  target.texture.height = size;
 
-  rlBegin(RL_TRIANGLES);
-  rlColor4ub(color.r, color.g, color.b, color.a);
-  rlNormal3f(0.0f, 1.0f, 0.0f);
+  if (target.id > 0) {
+    rlEnableFramebuffer(target.id);
 
-  // Wound counter-clockwise seen from above so backface culling keeps it
-  for (int i = 0; i < segments; i++) {
-    float a = i * step;
-    rlVertex3f(center.x, center.y, center.z);
-    rlVertex3f(center.x + cosf(a + step) * radius, center.y, center.z + sinf(a + step) * radius);
-    rlVertex3f(center.x + cosf(a) * radius, center.y, center.z + sinf(a) * radius);
+    target.depth.id = rlLoadTextureDepth(size, size, false);
+    target.depth.width = size;
+    target.depth.height = size;
+    target.depth.format = 19; // DEPTH_COMPONENT_24BIT
+    target.depth.mipmaps = 1;
+    rlFramebufferAttach(target.id, target.depth.id, RL_ATTACHMENT_DEPTH, RL_ATTACHMENT_TEXTURE2D, 0);
+
+    if (!rlFramebufferComplete(target.id)) TraceLog(LOG_WARNING, "Shadow map framebuffer incomplete");
+    rlDisableFramebuffer();
   }
-  rlEnd();
+
+  return target;
+}
+
+void GameManager::UnloadShadowMap(RenderTexture2D target) {
+  if (target.id == 0) return;
+  rlUnloadFramebuffer(target.id); // Also unloads the attached depth texture
 }
 } // namespace BombOS

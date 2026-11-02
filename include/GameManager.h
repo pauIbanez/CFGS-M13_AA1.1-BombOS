@@ -27,9 +27,14 @@ private:
   static raylib::Camera3D camera;
   static std::unique_ptr<raylib::Shader> shader;
 
-  static const Color shadowColor;
-  static const float shadowLength; // How far a wall's shadow reaches into the next tile
-  static const float shadowHeight; // Just above the floor planes to avoid z-fighting
+  static const raylib::Vector3 lightDir; // Direction the sunlight travels
+  static const float lightDistance;      // How far back the light camera sits from the map center
+  static const float shadowStrength;     // Brightness kept inside a shadow
+  static const int shadowMapSize;
+
+  static RenderTexture2D shadowMap;
+  static Matrix lightVP;
+  static int lightVPLoc;
 
   static std::unique_ptr<Map::MapData> mapData;
   static raylib::Vector3 offset;
@@ -55,6 +60,10 @@ public:
   static void DrawPlaneTexture(Texture2D texture, Vector3 position, float width, float length,
                                Color tint);
 
-  static void DrawShadowDisc(Vector3 center, float radius, Color color);
+private:
+  static void DrawWorld(bool drawFloor);
+  static void RenderShadowMap();
+  static RenderTexture2D LoadShadowMap(int size);
+  static void UnloadShadowMap(RenderTexture2D target);
 };
 } // namespace BombOS

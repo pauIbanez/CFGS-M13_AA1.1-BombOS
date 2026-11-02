@@ -4,7 +4,7 @@
 
 namespace BombOS {
 
-const raylib::Vector3 Player::size{0.8, 2, 0.8};
+const raylib::Vector3 Player::size{0.2, 2, 0.2};
 
 void Player::Update() {
   raylib::Vector2 dir;
