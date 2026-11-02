@@ -11,8 +11,11 @@ std::unique_ptr<Map::MapData> BOSReader::Read() {
   const Map::StringMap floor = ReadFloor(textureStore, mapSize);
   const Map::StringMap main = ReadMap(textureStore, mapSize);
   const Map::StringMap collisions = ReadCollisions(mapSize);
+  const Map::StringMap objects = ReadObjects(mapSize);
+  ExpectEnd();
 
-  return std::make_unique<Map::MapData>(title, textureStore, mapSize, floor, main, collisions);
+  return std::make_unique<Map::MapData>(title, textureStore, mapSize, floor, main, collisions,
+                                        objects);
 }
 
 
@@ -129,14 +132,31 @@ const Map::StringMap BOSReader::ReadCollisions(const Map::MapSize &size) {
   for (size_t y = 0; y < size.height; y++) {
     for (size_t x = 0; x < size.width; x++) {
       std::string collisionType = GetNext();
-      // TODO: Check accepted collision types. Throw or grab default.
-      // TODO: Consider creating a CollisionMap and parse the string to a CollisionType enum;
       collisionMap.At(x, y) = collisionType;
     }
     ExpectLineEnd("Column: " + std::to_string(y));
   }
 
   return collisionMap;
+}
+
+const Map::StringMap BOSReader::ReadObjects(const Map::MapSize &size) {
+  ExpectHeader("OBJECTS");
+  ExpectLineEnd("Objects header");
+
+  Map::StringMap obejctsMap(size.width, size.height);
+
+  for (size_t y = 0; y < size.height; y++) {
+    for (size_t x = 0; x < size.width; x++) {
+      std::string objectType = GetNext();
+      // TODO: Check accepted collision types. Throw or grab default.
+      // TODO: Consider creating a CollisionMap and parse the string to a CollisionType enum;
+      obejctsMap.At(x, y) = objectType;
+    }
+    ExpectLineEnd("Column: " + std::to_string(y));
+  }
+
+  return obejctsMap;
 }
 
 

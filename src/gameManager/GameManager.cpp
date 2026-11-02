@@ -1,14 +1,16 @@
 #include "GameManager.h"
-#include <memory>
-#include <raylib-cpp/Texture.hpp>
-#include <raylib.h>
-#include <utility>
-#define RLIGHTS_IMPLEMENTATION
 #include "Reader.h"
-#include "rlights.h"
+#include <charconv>
+#include <cmath>
 #include <cstddef>
+#include <memory>
 #include <raylib-cpp/Keyboard.hpp>
+#include <raylib-cpp/Texture.hpp>
+#include <raylib-cpp/Vector3.hpp>
+#include <raylib.h>
 #include <rlgl.h>
+#include <utility>
+
 namespace BombOS {
 
 bool GameManager::isPaused = false;
@@ -17,12 +19,15 @@ bool GameManager::isHalted = false;
 std::unique_ptr<WindowManager> GameManager::window;
 raylib::Camera3D GameManager::camera;
 std::unique_ptr<raylib::Shader> GameManager::shader;
-Light GameManager::sun;
+
+const Color GameManager::shadowColor{0, 0, 0, 70};
+const float GameManager::shadowLength = 0.6f;
+const float GameManager::shadowHeight = 0.51f;
 
 std::unique_ptr<Map::MapData> GameManager::mapData;
 raylib::Vector3 GameManager::offset;
 
-std::unique_ptr<Player> GameManager::player;
+std::vector<std::unique_ptr<Player>> GameManager::players;
 std::unordered_map<std::string, raylib::Texture2D> GameManager::textures;
 
 void GameManager::Init() {
@@ -31,15 +36,11 @@ void GameManager::Init() {
   camera = raylib::Camera3D({-7.5f, 14.0f, 0}, {0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, 45.0f,
                             CAMERA_PERSPECTIVE);
 
-  shader = std::make_unique<raylib::Shader>("resources/lighting.vs", "resources/lighting.fs");
-  shader->locs[SHADER_LOC_VECTOR_VIEW] = shader->GetLocation("viewPos");
+  shader = std::make_unique<raylib::Shader>("resources/shading.vs", "resources/shading.fs");
 
-  float ambient[4] = {0.5f, 0.5f, 0.5f, 1};
-  shader->SetValue(shader->GetLocation("ambient"), ambient, SHADER_UNIFORM_VEC4);
-
-  sun = CreateLight(LIGHT_DIRECTIONAL, {-10, 20, 5}, {0, 0, 0}, WHITE, *shader);
-
-  player = std::make_unique<Player>();
+  // X sides, top, Z sides, bottom
+  float faceShade[4] = {0.85f, 1.0f, 0.75f, 0.5f};
+  shader->SetValue(shader->GetLocation("faceShade"), faceShade, SHADER_UNIFORM_VEC4);
 
   LoadLevel("./assets/level1.bos");
 }
@@ -52,15 +53,12 @@ void GameManager::Update() {
 
   if (raylib::Keyboard::IsKeyPressed(KEY_ESCAPE)) EnableCursor();
 
-  player->Update();
+  for (const std::unique_ptr<Player> &player : players)
+    player->Update();
 }
 
 void GameManager::Render() {
   window->BeginFrame();
-
-  float camPos[3] = {camera.position.x, camera.position.y, camera.position.z};
-  shader->SetValue(shader->locs[SHADER_LOC_VECTOR_VIEW], camPos, SHADER_UNIFORM_VEC3);
-  UpdateLightValues(*shader, sun);
 
   camera.BeginMode();
   shader->BeginMode();
@@ -85,7 +83,24 @@ void GameManager::Render() {
       DrawCubeTexture(texture, pos, 1, 1, 1, WHITE);
     }
   }
-  player->Render();
+
+  // Fake shadows: drawn after the floor so they blend over it
+  for (auto [x, y, main] : mapData->main.GetWithIndex()) {
+    if (main == "0" || y + 1 >= mapData->mapSize.height) continue;
+    if (mapData->floor.Read(x, y + 1) == "0" || mapData->main.Read(x, y + 1) != "0") continue;
+
+    // Next row is toward the camera; shadow starts at the edge touching the wall
+    raylib::Vector3 tile = raylib::Vector3{-(float)(y + 1), shadowHeight, (float)x} + offset;
+    DrawPlane({tile.x + 0.5f - shadowLength * 0.5f, tile.y, tile.z}, {shadowLength, 1}, shadowColor);
+  }
+
+  for (const std::unique_ptr<Player> &player : players) {
+    raylib::Vector3 pos = player->position + offset;
+    DrawShadowDisc({pos.x, shadowHeight, pos.z}, Player::size.x * 0.6f, shadowColor);
+  }
+
+  for (const std::unique_ptr<Player> &player : players)
+    player->Render(offset);
 
 
   shader->EndMode();
@@ -114,7 +129,27 @@ void GameManager::LoadLevel(const std::string &levelName) {
   isHalted = false;
 }
 
-void GameManager::StartLevel() {}
+void GameManager::SpawnPlayers() {
+
+  for (auto [x, y, object] : mapData->objects.GetWithIndex()) {
+    short player;
+    const char *begin = object.data();
+    const char *end = begin + object.size();
+    auto [ptr, ec] = std::from_chars(begin, end, player);
+    if (ec != std::errc() || ptr != end || player == 0) continue;
+
+    raylib::Vector3 pos{-(float)x, (Player::size.y * 0.5f), (float)y};
+    players.push_back(std::make_unique<Player>(player, pos));
+  }
+}
+
+void GameManager::StartLevel() {
+  // Reset objects
+  // Reset positions
+
+  players.clear();
+  SpawnPlayers();
+}
 
 void GameManager::Shutdown() {
   mapData.reset();
@@ -228,5 +263,23 @@ void GameManager::DrawPlaneTexture(Texture2D texture, Vector3 position, float wi
   rlVertex3f(x + width / 2, y, z - length / 2);
   rlEnd();
   rlSetTexture(0);
+}
+
+void GameManager::DrawShadowDisc(Vector3 center, float radius, Color color) {
+  constexpr int segments = 20;
+  constexpr float step = 2.0f * PI / segments;
+
+  rlBegin(RL_TRIANGLES);
+  rlColor4ub(color.r, color.g, color.b, color.a);
+  rlNormal3f(0.0f, 1.0f, 0.0f);
+
+  // Wound counter-clockwise seen from above so backface culling keeps it
+  for (int i = 0; i < segments; i++) {
+    float a = i * step;
+    rlVertex3f(center.x, center.y, center.z);
+    rlVertex3f(center.x + cosf(a + step) * radius, center.y, center.z + sinf(a + step) * radius);
+    rlVertex3f(center.x + cosf(a) * radius, center.y, center.z + sinf(a) * radius);
+  }
+  rlEnd();
 }
 } // namespace BombOS

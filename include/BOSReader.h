@@ -23,6 +23,7 @@ private:
   const Map::StringMap ReadFloor(const Map::TextureStore &store, const Map::MapSize &size);
   const Map::StringMap ReadMap(const Map::TextureStore &store, const Map::MapSize &size);
   const Map::StringMap ReadCollisions(const Map::MapSize &size);
+  const Map::StringMap ReadObjects(const Map::MapSize &size);
 
 
 private:

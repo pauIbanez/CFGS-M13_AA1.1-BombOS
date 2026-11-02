@@ -4,6 +4,8 @@
 
 namespace BombOS {
 
+const raylib::Vector3 Player::size{0.8, 2, 0.8};
+
 void Player::Update() {
   raylib::Vector2 dir;
   if (raylib::Keyboard::IsKeyDown(KEY_W)) dir.x += 1;
@@ -15,5 +17,5 @@ void Player::Update() {
   position += raylib::Vector3{dir.x, 0, dir.y} * 10 * GetFrameTime();
 }
 
-void Player::Render() { DrawCubeV(position, {0.2f, 1, 0.2f}, YELLOW); }
+void Player::Render(const raylib::Vector3 &offset) { DrawCubeV(position + offset, size, YELLOW); }
 } // namespace BombOS
