@@ -17,6 +17,7 @@ std::vector<std::unique_ptr<Bomb>> Level::bombs;
 void Level::Load(const std::string &levelName) {
   Reader reader(levelName);
   loadedMap = reader.Read();
+  if (!loadedMap->music.empty()) Assets::LoadMusic(loadedMap->music);
 
   Assets::LoadTextures(loadedMap->textureStore);
 
@@ -29,6 +30,8 @@ void Level::Start() {
 
   players.clear();
   SpawnPlayers();
+  Assets::GetMusic().Seek(0);
+  Assets::GetMusic().Play();
 }
 
 void Level::Update() {

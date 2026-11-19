@@ -41,6 +41,7 @@ const raylib::ModelAnimation &Assets::GetAnimation(const std::string &name) {
 void Assets::Unload() {
   animations.clear();
   models.clear();
+  music = raylib::Music();
   textures.clear();
 }
 

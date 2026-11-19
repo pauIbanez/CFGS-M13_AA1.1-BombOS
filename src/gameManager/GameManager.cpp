@@ -15,7 +15,7 @@ raylib::Camera3D GameManager::camera;
 
 void GameManager::Init() {
   window = std::make_unique<WindowManager>();
-
+  InitAudioDevice();
   camera = raylib::Camera3D({-6.0f, 14.0f, 0}, {0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, 45.0f,
                             CAMERA_PERSPECTIVE);
 
@@ -26,6 +26,7 @@ void GameManager::Init() {
 
 void GameManager::Update() {
   if (isHalted) return;
+  Assets::GetMusic().Update();
   if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && !IsCursorHidden()) DisableCursor();
   if (!IsWindowFocused() && IsCursorHidden()) EnableCursor();
 
@@ -50,6 +51,7 @@ void GameManager::LoadLevel(const std::string &levelName) {
 void GameManager::Shutdown() {
   Level::Unload();
   Assets::Unload();
+  CloseAudioDevice();
   Renderer::Shutdown();
   window.reset();
 }
