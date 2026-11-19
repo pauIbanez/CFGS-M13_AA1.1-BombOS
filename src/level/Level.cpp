@@ -1,13 +1,16 @@
 #include "Level.h"
 #include "Assets.h"
 #include "Reader.h"
+#include <algorithm>
 #include <charconv>
+#include <memory>
 
 namespace BombOS {
 
 std::unique_ptr<Map::MapData> Level::loadedMap;
 std::unique_ptr<Map::MapData> Level::mapData;
 std::vector<std::unique_ptr<Player>> Level::players;
+std::vector<std::unique_ptr<Bomb>> Level::bombs;
 
 void Level::Load(const std::string &levelName) {
   Reader reader(levelName);
@@ -45,7 +48,17 @@ bool Level::IsSolidAt(const raylib::Vector2 pos) {
   const Map::MapSize &size = mapData->mapSize;
   if (x >= size.width || y >= size.height) return true;
 
-  return mapData->collisions.Read(x, y) != "0";
+  if (mapData->collisions.Read(x, y) != "0") return true;
+  const raylib::Vector2 tilePos{(float)x, (float)y};
+  auto it = std::find_if(
+      bombs.begin(), bombs.end(),
+      [&tilePos](const std::unique_ptr<Bomb> &bomb) { return bomb->position == tilePos; }
+
+  );
+
+  if (it == bombs.end()) return false;
+
+  return it->get()->IsSolid();
 }
 
 void Level::SpawnPlayers() {
@@ -61,5 +74,5 @@ void Level::SpawnPlayers() {
   }
 }
 
-bool Level::DestroyBlock(const raylib::Vector2 &position) {}
+bool Level::DestroyBlock(const raylib::Vector2 &position) { return false; }
 } // namespace BombOS

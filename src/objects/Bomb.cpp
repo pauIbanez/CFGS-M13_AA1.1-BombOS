@@ -1,6 +1,7 @@
 #include "Bomb.h"
 #include "Level.h"
-#include <cstddef>
+#include "Player.h"
+#include <memory>
 #include <raylib-cpp/Vector2.hpp>
 #include <raylib.h>
 
@@ -10,6 +11,36 @@ const float Bomb::DelayTime = 1000;
 const short Bomb::Range = 2;
 
 void Bomb::Update() {
+  CheckSolid();
+  RunTimer();
+}
+
+void Bomb::CheckSolid() {
+  if (isSolid) return;
+
+  const float bombLeft = position.x;
+  const float bombRight = position.x + 1;
+  const float bombTop = position.y;
+  const float bombBottom = position.y + 1;
+
+  for (const std::unique_ptr<Player> &player : Level::GetPlayers()) {
+    if (!player) continue;
+
+    const float playerLeft = player->position.x;
+    const float playerRight = player->position.x + 1;
+    const float playerTop = player->position.y;
+    const float playerBottom = player->position.y + 1;
+
+    const bool overlaps =
+        playerRight > bombLeft + Player::epsilon && playerLeft < bombRight - Player::epsilon &&
+        playerBottom > bombTop + Player::epsilon && playerTop < bombBottom - Player::epsilon;
+
+    if (overlaps) return;
+  }
+  isSolid = true;
+}
+
+void Bomb::RunTimer() {
   if (hasDetonated || timer < 0) return;
 
   timer -= GetFrameTime();

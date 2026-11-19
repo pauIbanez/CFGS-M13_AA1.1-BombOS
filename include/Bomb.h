@@ -29,5 +29,5 @@ public:
 private:
   void CheckSolid();
   void RunTimer();
-}
+};
 } // namespace BombOS

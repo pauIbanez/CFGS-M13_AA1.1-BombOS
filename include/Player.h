@@ -31,6 +31,7 @@ public:
   void Update();
   void SetAnimation(Animation next);
 
+
 private:
   raylib::Vector2 GetInputDir();
   void Move(const raylib::Vector2 &delta);

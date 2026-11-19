@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Bomb.h"
 #include "MapData.h"
 #include "Player.h"
 #include <memory>
@@ -14,10 +15,12 @@ private:
   static std::unique_ptr<Map::MapData> loadedMap;
   static std::unique_ptr<Map::MapData> mapData;
   static std::vector<std::unique_ptr<Player>> players;
+  static std::vector<std::unique_ptr<Bomb>> bombs;
 
 public:
   static inline Map::MapData &GetMapData() { return *mapData; }
   static inline const std::vector<std::unique_ptr<Player>> &GetPlayers() { return players; }
+  static inline const std::vector<std::unique_ptr<Bomb>> &GetBombs() { return bombs; }
 
   static void Load(const std::string &levelName);
   static void Start();
