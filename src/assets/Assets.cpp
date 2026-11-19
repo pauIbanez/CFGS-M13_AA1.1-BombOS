@@ -1,5 +1,7 @@
 #include "Assets.h"
 #include "Renderer.h"
+#include <raylib-cpp/Sound.hpp>
+#include <raylib.h>
 #include <utility>
 #include <vector>
 
@@ -7,6 +9,7 @@ namespace BombOS {
 
 std::unordered_map<std::string, raylib::Texture2D> Assets::textures;
 std::unordered_map<std::string, raylib::Model> Assets::models;
+raylib::Music Assets::music;
 std::unordered_map<std::string, raylib::ModelAnimation> Assets::animations;
 
 void Assets::LoadTextures(const Map::TextureStore &textureStore) {
@@ -24,6 +27,12 @@ void Assets::LoadModels() {
 }
 
 raylib::Model &Assets::GetModel(const std::string &name) { return models.at(name); }
+
+void Assets::LoadMusic(const std::string &musicName) {
+  music = raylib::Music("./assets/music/" + musicName);
+}
+raylib::Music &Assets::GetMusic() { return music; }
+
 
 const raylib::ModelAnimation &Assets::GetAnimation(const std::string &name) {
   return animations.at(name);
