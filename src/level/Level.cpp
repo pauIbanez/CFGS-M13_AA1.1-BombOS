@@ -30,8 +30,12 @@ void Level::Start() {
 
   players.clear();
   SpawnPlayers();
-  Assets::GetMusic().Seek(0);
-  Assets::GetMusic().Play();
+
+  raylib::Music &music = Assets::GetMusic();
+  if (music.IsValid()) {
+    music.Seek(0);
+    music.Play();
+  }
 }
 
 void Level::Update() {

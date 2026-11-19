@@ -21,7 +21,7 @@ void GameManager::Init() {
 
   Renderer::Init();
 
-  LoadLevel("./assets/level6.bos");
+  LoadLevel("./assets/level4.bos");
 }
 
 void GameManager::Update() {
