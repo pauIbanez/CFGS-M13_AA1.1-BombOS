@@ -45,8 +45,8 @@ void Bomb::RunTimer() {
 
   timer -= GetFrameTime();
   if (timer <= 0) {
-    hasDetonated = true;
     Detonate();
+    hasDetonated = true;
   }
 }
 

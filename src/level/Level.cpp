@@ -38,9 +38,7 @@ void Level::Update() {
   for (const std::unique_ptr<Bomb> &bomb : bombs)
     bomb->Update();
 
-  for (const std::unique_ptr<Bomb> &bomb : bombs) {
-    if (bomb->hasDetonated) DetonateBomb(bomb.get());
-  }
+  std::erase_if(bombs, [](const auto &b) { return b->hasDetonated; });
 }
 
 void Level::Unload() {
@@ -71,9 +69,7 @@ bool Level::IsSolidAt(const raylib::Vector2 pos) {
   return it->get()->IsSolid();
 }
 
-void Level::DetonateBomb(const Bomb *bomb) {
-  std::erase_if(bombs, [bomb](const std::unique_ptr<Bomb> &b) { return b.get() == bomb; });
-}
+
 
 void Level::SpawnBomb(const raylib::Vector2 &position) {
   raylib::Vector2 pos{std::floor(position.x), std::floor(position.y)};
@@ -99,5 +95,20 @@ void Level::SpawnPlayers() {
   }
 }
 
-bool Level::DestroyBlock(const raylib::Vector2 &position) { return false; }
+bool Level::DestroyBlock(const raylib::Vector2 &pos) {
+  if (pos.x < 0 || pos.y < 0) return true;
+
+  const int x = (int)pos.x;
+  const int y = (int)pos.y;
+  const Map::MapSize &size = mapData->mapSize;
+  if (x >= size.width || y >= size.height) return true;
+
+  std::string &col = mapData->collisions.At(x, y);
+  if (col == "0") return false;
+
+  if (col != "D") return true;
+  col = "0";
+  mapData->main.At(x, y) = "0";
+  return true;
+}
 } // namespace BombOS
