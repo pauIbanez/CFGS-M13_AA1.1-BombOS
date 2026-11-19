@@ -18,6 +18,7 @@ const float Renderer::shadowStrength = 0.65f;
 const int Renderer::shadowMapSize = 2048;
 const Color Renderer::shadowColor{0, 0, 0, 70};
 const float Renderer::playerScale = 0.65f;
+const float Renderer::bombScale = 0.2f;
 const float Renderer::animationFps = 60;
 
 raylib::Model *Renderer::playerModel = nullptr;
@@ -139,7 +140,7 @@ void Renderer::DrawPlayer(const Player &player) {
 }
 
 void Renderer::DrawBomb(const Bomb &bomb) {
-
+  bombModel->Draw(GridToWorld(bomb.position), {0, 1, 0}, 0, raylib::Vector3::One() * bombScale);
 
   DrawShadowDisc(GridToWorld(bomb.position, 0.01f), 0.3f, shadowColor);
 }

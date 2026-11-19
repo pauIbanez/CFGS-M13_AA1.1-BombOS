@@ -33,6 +33,7 @@ public:
 
 
 private:
+  bool PlaceBomb();
   raylib::Vector2 GetInputDir();
   void Move(const raylib::Vector2 &delta);
   void MoveX(const float &deltaX);

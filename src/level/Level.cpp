@@ -3,7 +3,9 @@
 #include "Reader.h"
 #include <algorithm>
 #include <charconv>
+#include <cmath>
 #include <memory>
+#include <raylib-cpp/Vector2.hpp>
 
 namespace BombOS {
 
@@ -32,10 +34,18 @@ void Level::Start() {
 void Level::Update() {
   for (const std::unique_ptr<Player> &player : players)
     player->Update();
+
+  for (const std::unique_ptr<Bomb> &bomb : bombs)
+    bomb->Update();
+
+  for (const std::unique_ptr<Bomb> &bomb : bombs) {
+    if (bomb->hasDetonated) DetonateBomb(bomb.get());
+  }
 }
 
 void Level::Unload() {
   players.clear();
+  bombs.clear();
   mapData.reset();
   loadedMap.reset();
 }
@@ -59,6 +69,21 @@ bool Level::IsSolidAt(const raylib::Vector2 pos) {
   if (it == bombs.end()) return false;
 
   return it->get()->IsSolid();
+}
+
+void Level::DetonateBomb(const Bomb *bomb) {
+  std::erase_if(bombs, [bomb](const std::unique_ptr<Bomb> &b) { return b.get() == bomb; });
+}
+
+void Level::SpawnBomb(const raylib::Vector2 &position) {
+  raylib::Vector2 pos{std::floor(position.x), std::floor(position.y)};
+
+  auto it = std::find_if(bombs.begin(), bombs.end(),
+                         [&pos](const std::unique_ptr<Bomb> &bomb) { return bomb->position == pos; }
+
+  );
+
+  if (it == bombs.end()) bombs.push_back(std::make_unique<Bomb>(pos));
 }
 
 void Level::SpawnPlayers() {

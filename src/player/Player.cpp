@@ -3,6 +3,8 @@
 #include <algorithm>
 #include <cmath>
 #include <raylib-cpp/Keyboard.hpp>
+#include <raylib-cpp/Vector2.hpp>
+#include <raylib.h>
 
 namespace BombOS {
 
@@ -30,12 +32,13 @@ void Player::Update() {
 
   Move(dir * speed * GetFrameTime());
 
+  if (PlaceBomb()) Level::SpawnBomb(position + raylib::Vector2{0.5f, 0.5f});
 
   if (dir.x != 0 || dir.y != 0) facing = dir;
   SetAnimation(position == previous ? Animation::Idle : Animation::Run);
   animationTime += GetFrameTime();
 }
-
+bool Player::PlaceBomb() { return raylib::Keyboard::IsKeyPressed(KEY_SPACE); }
 
 raylib::Vector2 Player::GetInputDir() {
   for (const auto &[key, direction] : directionKeys)

@@ -28,6 +28,8 @@ public:
   static void Unload();
   static bool IsSolidAt(const raylib::Vector2 pos);
   static bool DestroyBlock(const raylib::Vector2 &position);
+  static void DetonateBomb(const Bomb *bomb);
+  static void SpawnBomb(const raylib::Vector2 &position);
 
 private:
   static void SpawnPlayers();

@@ -7,7 +7,7 @@
 
 namespace BombOS {
 
-const float Bomb::DelayTime = 1000;
+const float Bomb::DelayTime = 3;
 const short Bomb::Range = 2;
 
 void Bomb::Update() {
@@ -50,6 +50,8 @@ void Bomb::RunTimer() {
   }
 }
 
+bool Bomb::IsSolid() const { return isSolid; }
+
 
 void Bomb::Detonate() {
   if (hasDetonated) return;
@@ -68,5 +70,7 @@ void Bomb::Detonate() {
       if (Level::DestroyBlock(tile)) break;
     }
   }
+
+  hasDetonated = true;
 }
 } // namespace BombOS

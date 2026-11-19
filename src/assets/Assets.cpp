@@ -20,7 +20,7 @@ raylib::Texture2D &Assets::GetTexture(const std::string &name) { return textures
 
 void Assets::LoadModels() {
   LoadModel("bomberman", "./assets/player/bomberman.glb");
-  LoadModel("bomb", "./assets/player/bomb.glb");
+  LoadModel("bomb", "./assets/models/bomb.glb");
 }
 
 raylib::Model &Assets::GetModel(const std::string &name) { return models.at(name); }

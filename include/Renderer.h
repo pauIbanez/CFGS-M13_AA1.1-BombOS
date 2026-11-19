@@ -18,6 +18,7 @@ private:
   static const int shadowMapSize;
   static const Color shadowColor;
   static const float playerScale;
+  static const float bombScale;
   static const float animationFps;
 
 

@@ -12,7 +12,7 @@ public:
 
 public:
   raylib::Vector2 position;
-  bool hasDetonated;
+  bool hasDetonated = false;
   float timer;
 
 private:
@@ -24,7 +24,7 @@ public:
 public:
   void Update();
   void Detonate();
-  bool IsSolid();
+  bool IsSolid() const;
 
 private:
   void CheckSolid();
