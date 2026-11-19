@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <charconv>
 #include <cmath>
+#include <filesystem>
 #include <memory>
 #include <raylib-cpp/Vector2.hpp>
 
@@ -17,9 +18,13 @@ std::vector<std::unique_ptr<Bomb>> Level::bombs;
 void Level::Load(const std::string &levelName) {
   Reader reader(levelName);
   loadedMap = reader.Read();
-  if (!loadedMap->music.empty()) Assets::LoadMusic(loadedMap->music);
 
-  Assets::LoadTextures(loadedMap->textureStore);
+  std::filesystem::path path(levelName);
+  const std::string folder = path.stem().string();
+
+
+  if (!loadedMap->music.empty()) Assets::LoadMusic(folder, loadedMap->music);
+  Assets::LoadTextures(folder, loadedMap->textureStore);
 
   Start();
 }

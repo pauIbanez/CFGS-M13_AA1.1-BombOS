@@ -15,13 +15,13 @@ private:
   static std::unordered_map<std::string, raylib::ModelAnimation> animations;
 
 public:
-  static void LoadTextures(const Map::TextureStore &textureStore);
+  static void LoadTextures(const std::string &folder, const Map::TextureStore &textureStore);
   static raylib::Texture2D &GetTexture(const std::string &name);
 
   static void LoadModels();
   static raylib::Model &GetModel(const std::string &name);
 
-  static void LoadMusic(const std::string &musicName);
+  static void LoadMusic(const std::string &folder, const std::string &musicName);
   static raylib::Music &GetMusic();
 
   static const raylib::ModelAnimation &GetAnimation(const std::string &name);
