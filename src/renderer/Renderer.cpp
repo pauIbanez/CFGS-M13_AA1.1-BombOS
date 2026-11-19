@@ -16,11 +16,14 @@ const raylib::Vector3 Renderer::lightDir = raylib::Vector3{0.25f, -1.0f, 0.45f}.
 const float Renderer::lightDistance = 20.0f;
 const float Renderer::shadowStrength = 0.65f;
 const int Renderer::shadowMapSize = 2048;
-const Color Renderer::playerShadowColor{0, 0, 0, 70};
+const Color Renderer::shadowColor{0, 0, 0, 70};
 const float Renderer::playerScale = 0.65f;
+const float Renderer::bombScale = 0.2f;
 const float Renderer::animationFps = 60;
 
 raylib::Model *Renderer::playerModel = nullptr;
+raylib::Model *Renderer::bombModel = nullptr;
+
 std::array<const raylib::ModelAnimation *, (size_t)Player::Animation::Count>
     Renderer::playerAnimations{};
 
@@ -46,6 +49,7 @@ void Renderer::Init() {
 
   Assets::LoadModels();
   playerModel = &Assets::GetModel("bomberman");
+  bombModel = &Assets::GetModel("bomb");
   playerAnimations[(size_t)Player::Animation::Idle] = &Assets::GetAnimation("idle");
   playerAnimations[(size_t)Player::Animation::Run] = &Assets::GetAnimation("run");
   playerAnimations[(size_t)Player::Animation::Victory] = &Assets::GetAnimation("victory");
@@ -115,6 +119,9 @@ void Renderer::DrawWorld(bool drawFloor) {
 
   for (const std::unique_ptr<Player> &player : Level::GetPlayers())
     DrawPlayer(*player);
+
+  for (const std::unique_ptr<Bomb> &bomb : Level::GetBombs())
+    DrawBomb(*bomb);
 }
 
 void Renderer::DrawPlayer(const Player &player) {
@@ -129,7 +136,13 @@ void Renderer::DrawPlayer(const Player &player) {
 
   playerModel->Draw(GridToWorld(player.position), {0, 1, 0}, yaw,
                     raylib::Vector3::One() * playerScale);
-  DrawShadowDisc(GridToWorld(player.position, 0.01f), 0.3f, playerShadowColor);
+  DrawShadowDisc(GridToWorld(player.position, 0.01f), 0.3f, shadowColor);
+}
+
+void Renderer::DrawBomb(const Bomb &bomb) {
+  bombModel->Draw(GridToWorld(bomb.position), {0, 1, 0}, 0, raylib::Vector3::One() * bombScale);
+
+  DrawShadowDisc(GridToWorld(bomb.position, 0.01f), 0.3f, shadowColor);
 }
 
 void Renderer::RenderShadowMap() {

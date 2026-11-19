@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Bomb.h"
 #include "Player.h"
 #include "WindowManager.h"
 #include <array>
@@ -15,12 +16,15 @@ private:
   static const float lightDistance;
   static const float shadowStrength;
   static const int shadowMapSize;
-  static const Color playerShadowColor;
+  static const Color shadowColor;
   static const float playerScale;
+  static const float bombScale;
   static const float animationFps;
 
-  // Resolved once after loading so drawing never looks assets up by name
+
   static raylib::Model *playerModel;
+  static raylib::Model *bombModel;
+
   static std::array<const raylib::ModelAnimation *, (size_t)Player::Animation::Count>
       playerAnimations;
 
@@ -49,6 +53,7 @@ public:
 private:
   static void DrawWorld(bool drawFloor);
   static void DrawPlayer(const Player &player);
+  static void DrawBomb(const Bomb &bomb);
   static void RenderShadowMap();
   static RenderTexture2D LoadShadowMap(int size);
   static void UnloadShadowMap(RenderTexture2D target);

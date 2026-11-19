@@ -18,7 +18,10 @@ void Assets::LoadTextures(const Map::TextureStore &textureStore) {
 
 raylib::Texture2D &Assets::GetTexture(const std::string &name) { return textures[name]; }
 
-void Assets::LoadModels() { LoadModel("bomberman", "./assets/player/bomberman.glb"); }
+void Assets::LoadModels() {
+  LoadModel("bomberman", "./assets/player/bomberman.glb");
+  LoadModel("bomb", "./assets/models/bomb.glb");
+}
 
 raylib::Model &Assets::GetModel(const std::string &name) { return models.at(name); }
 
