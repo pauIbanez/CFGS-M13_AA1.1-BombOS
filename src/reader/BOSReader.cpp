@@ -6,6 +6,9 @@ namespace BombOS {
 
 std::unique_ptr<Map::MapData> BOSReader::Read() {
   const std::string title = ReadTitle();
+  std::string music = "";
+  if (*version > Version(0, 0, 5)) music = ReadMusic();
+
   const Map::TextureStore textureStore = ReadTextures();
   const Map::MapSize mapSize = ReadSize();
   const Map::StringMap floor = ReadFloor(textureStore, mapSize);
@@ -14,10 +17,22 @@ std::unique_ptr<Map::MapData> BOSReader::Read() {
   const Map::StringMap objects = ReadObjects(mapSize);
   ExpectEnd();
 
-  return std::make_unique<Map::MapData>(title, textureStore, mapSize, floor, main, collisions,
-                                        objects);
+  return std::make_unique<Map::MapData>(title, music, textureStore, mapSize, floor, main,
+                                        collisions, objects);
 }
 
+
+const std::string BOSReader::ReadMusic() {
+  ExpectHeader("MUSIC");
+
+  std::string music = GetNext();
+  if (music == "") throw std::runtime_error("Can't have an empty music track");
+
+  ExpectLineEnd("Music");
+
+  printf("MUSIC: %s\n", music.c_str());
+  return music;
+}
 
 const Map::TextureStore BOSReader::ReadTextures() {
   ExpectHeader("TEXTURES");

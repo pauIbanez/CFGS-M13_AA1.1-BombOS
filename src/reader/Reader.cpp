@@ -14,7 +14,7 @@ const std::unordered_map<std::string, Format> Reader::formatHeaders = {
 };
 
 const Version Reader::PBOSlatest = Version(0, 0, 1);
-const Version Reader::BOSlatest = Version(0, 0, 5);
+const Version Reader::BOSlatest = Version(0, 0, 6);
 
 
 
@@ -35,7 +35,7 @@ std::unique_ptr<Map::MapData> Reader::Read() {
 
   switch (format) {
   case Format::BOS:
-    return BOSReader(std::move(stream)).Read();
+    return BOSReader(*version, std::move(stream)).Read();
 
   case Format::PBOS:
     return PBOSReader(std::move(stream)).Read();
