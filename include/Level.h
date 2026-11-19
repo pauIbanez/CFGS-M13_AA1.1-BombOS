@@ -24,6 +24,7 @@ public:
   static void Update();
   static void Unload();
   static bool IsSolidAt(const raylib::Vector2 pos);
+  static bool DestroyBlock(const raylib::Vector2 &position);
 
 private:
   static void SpawnPlayers();

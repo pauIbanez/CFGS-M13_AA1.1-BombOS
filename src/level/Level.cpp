@@ -60,4 +60,6 @@ void Level::SpawnPlayers() {
     players.push_back(std::make_unique<Player>(player, raylib::Vector2{(float)x, (float)y}));
   }
 }
+
+bool Level::DestroyBlock(const raylib::Vector2 &position) {}
 } // namespace BombOS
