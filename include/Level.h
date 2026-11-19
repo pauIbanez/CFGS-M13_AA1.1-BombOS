@@ -18,6 +18,7 @@ private:
   static std::vector<std::unique_ptr<Bomb>> bombs;
 
 public:
+  static inline const std::string &GetName() { return mapData->name; }
   static inline Map::MapData &GetMapData() { return *mapData; }
   static inline const std::vector<std::unique_ptr<Player>> &GetPlayers() { return players; }
   static inline const std::vector<std::unique_ptr<Bomb>> &GetBombs() { return bombs; }

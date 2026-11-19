@@ -77,6 +77,13 @@ void Renderer::Render(WindowManager &window, raylib::Camera3D &camera) {
   rlActiveTextureSlot(0);
 
   camera.EndMode();
+
+  const int padding = 10;
+  const int fontSize = 20;
+  const char *name = Level::GetName().c_str();
+  DrawText(name, GetScreenWidth() - MeasureText(name, fontSize) - padding, padding, fontSize,
+           DARKGRAY);
+
   window.EndFrame();
 }
 
