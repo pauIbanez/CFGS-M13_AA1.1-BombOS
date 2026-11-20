@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <charconv>
 #include <cmath>
+#include <filesystem>
 #include <memory>
 #include <raylib-cpp/Vector2.hpp>
 
@@ -18,7 +19,12 @@ void Level::Load(const std::string &levelName) {
   Reader reader(levelName);
   loadedMap = reader.Read();
 
-  Assets::LoadTextures(loadedMap->textureStore);
+  std::filesystem::path path(levelName);
+  const std::string folder = path.stem().string();
+
+
+  if (!loadedMap->music.empty()) Assets::LoadMusic(folder, loadedMap->music);
+  Assets::LoadTextures(folder, loadedMap->textureStore);
 
   Start();
 }
@@ -29,6 +35,12 @@ void Level::Start() {
 
   players.clear();
   SpawnPlayers();
+
+  raylib::Music &music = Assets::GetMusic();
+  if (music.IsValid()) {
+    music.Seek(0);
+    music.Play();
+  }
 }
 
 void Level::Update() {

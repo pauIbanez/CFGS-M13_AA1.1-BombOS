@@ -1,5 +1,7 @@
 #include "Assets.h"
 #include "Renderer.h"
+#include <raylib-cpp/Sound.hpp>
+#include <raylib.h>
 #include <utility>
 #include <vector>
 
@@ -7,12 +9,14 @@ namespace BombOS {
 
 std::unordered_map<std::string, raylib::Texture2D> Assets::textures;
 std::unordered_map<std::string, raylib::Model> Assets::models;
+raylib::Music Assets::music;
 std::unordered_map<std::string, raylib::ModelAnimation> Assets::animations;
 
-void Assets::LoadTextures(const Map::TextureStore &textureStore) {
+void Assets::LoadTextures(const std::string &folder, const Map::TextureStore &textureStore) {
   textures.clear();
   for (const std::pair<std::string, std::string> &item : textureStore) {
-    textures.emplace(item.first, raylib::Texture2D("./assets/textures/" + item.second));
+    textures.emplace(item.first,
+                     raylib::Texture2D("./assets/textures/" + folder + "/" + item.second));
   }
 }
 
@@ -25,6 +29,12 @@ void Assets::LoadModels() {
 
 raylib::Model &Assets::GetModel(const std::string &name) { return models.at(name); }
 
+void Assets::LoadMusic(const std::string &folder, const std::string &musicName) {
+  music = raylib::Music("./assets/music/" + folder + "/" + musicName);
+}
+raylib::Music &Assets::GetMusic() { return music; }
+
+
 const raylib::ModelAnimation &Assets::GetAnimation(const std::string &name) {
   return animations.at(name);
 }
@@ -32,6 +42,7 @@ const raylib::ModelAnimation &Assets::GetAnimation(const std::string &name) {
 void Assets::Unload() {
   animations.clear();
   models.clear();
+  music = raylib::Music();
   textures.clear();
 }
 

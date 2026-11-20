@@ -2,6 +2,7 @@
 
 #include "MapSize.h"
 #include "Reader.h"
+#include "Version.h"
 
 
 
@@ -11,12 +12,15 @@ namespace BombOS {
 class BOSReader : public Reader {
 
 public:
-  BOSReader(std::ifstream &&stream) : Reader(std::move(stream)) {}
+  BOSReader(Version version, std::ifstream &&stream) : Reader(std::move(stream)) {
+    this->version = new Version(version);
+  }
 
 public:
   std::unique_ptr<Map::MapData> Read() override;
 
 private:
+  const std::string ReadMusic();
   const Map::TextureStore ReadTextures();
   const Map::MapSize ReadSize();
 
